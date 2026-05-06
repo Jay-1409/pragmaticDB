@@ -1,2 +1,2 @@
 # stable-db
-lightweight network accessible relation database management system
+lightweight network accessible relational database management system
