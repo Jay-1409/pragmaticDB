@@ -1,11 +1,13 @@
 #include "disk_manager.h"
+#include "buffer_pool_manager.h"
 #include<iostream>
+void test_all(DiskManager& dm, BufferPoolManager& bpm) {
+    dm.test();
+    bpm.test();
+}
 int main() {
     DiskManager dm;
-    dm.test();
-    dm.WritePage(0, "Hello, World!");
-    char buffer[4096];
-    dm.ReadPage(0, buffer);
-    printf("Read from disk: %s\n", buffer);
+    BufferPoolManager bpm(10, &dm);
+    test_all(dm, bpm);
     return 0;
 }

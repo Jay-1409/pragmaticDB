@@ -11,7 +11,6 @@ void DiskManager::WritePage(int page_id, const char* data) {
      */
     std::fstream file("data.db", std::ios::in | std::ios::out | std::ios::binary);
     if (!file) {
-        // If the file doesn't exist, create it
         file.open("data.db", std::ios::out | std::ios::binary);
         file.close();
         file.open("data.db", std::ios::in | std::ios::out | std::ios::binary);
