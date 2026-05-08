@@ -1,6 +1,6 @@
 #include "../include/buffer_pool_manager.h"
 #include <iostream>
-
+#include <cstring>
 BufferPoolManager::BufferPoolManager(std::size_t pool_size, DiskManager* disk_manager)
     : pool_size_(pool_size), disk_manager_(disk_manager) {
         pages_.resize(pool_size);
@@ -91,21 +91,57 @@ Page* BufferPoolManager::NewPage(page_id_t* page_id) {
 }
 
 bool BufferPoolManager::UnpinPage(page_id_t page_id, bool is_dirty) {
-    (void)page_id;
-    (void)is_dirty;
-    return false;
+    if(page_table_.count(page_id) == 0) {
+        return false;
+    }
+    frame_id_t frame_id = page_table_[page_id];
+    if(pages_[frame_id].pin_count <= 0) {
+        return false;       
+    }
+    if(is_dirty) {
+        pages_[frame_id].is_dirty = true;
+    }
+    pages_[frame_id].pin_count--;
+    UnpinFrame(frame_id);
+    return true;
 }
 
 bool BufferPoolManager::FlushPage(page_id_t page_id) {
-    (void)page_id;
-    return false;
+    if(page_table_.count(page_id) == 0) {
+        return false;
+    }
+    frame_id_t frame_id = page_table_[page_id];
+    if(pages_[frame_id].is_dirty) {
+        disk_manager_->WritePage(page_id, pages_[frame_id].data);
+        pages_[frame_id].is_dirty = false;
+    }
+    return true;
 }
 
-void BufferPoolManager::FlushAllPages() {}
+void BufferPoolManager::FlushAllPages() {
+    for(const auto& entry : page_table_) {
+        pages_[entry.second].is_dirty = false;
+        FlushPage(entry.first);
+    }
+}
 
 bool BufferPoolManager::DeletePage(page_id_t page_id) {
-    (void)page_id;
-    return false;
+    if(page_table_.count(page_id) == 0) {
+        return false;
+    }
+    frame_id_t frame_id = page_table_[page_id];
+    if(pages_[frame_id].pin_count > 0) {
+        return false;
+    }
+    if(pages_[frame_id].is_dirty) {
+        disk_manager_->WritePage(page_id, pages_[frame_id].data);
+    }
+    page_table_.erase(page_id);
+    pages_[frame_id].page_id = INVALID_PAGE_ID;
+    pages_[frame_id].pin_count = 0;
+    pages_[frame_id].is_dirty = false;
+    free_list_.push_back(frame_id);
+    return true;
 }
 
 void BufferPoolManager::test() {
