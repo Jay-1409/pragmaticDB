@@ -70,7 +70,24 @@ Page* BufferPoolManager::FetchPage(page_id_t page_id) {
 }
 
 Page* BufferPoolManager::NewPage(page_id_t* page_id) {
-    
+    frame_id_t next_frame_id;
+    if(!GetFreeFrameOrVictim(&next_frame_id)) {
+        return nullptr;
+    }
+    if(pages_[next_frame_id].is_dirty) {
+        disk_manager_->WritePage(pages_[next_frame_id].page_id, pages_[next_frame_id].data);
+    }
+    if(pages_[next_frame_id].page_id != INVALID_PAGE_ID) {
+        page_table_.erase(pages_[next_frame_id].page_id);
+    }
+    *page_id = next_page_id_++;
+    page_table_[*page_id] = next_frame_id;
+    pages_[next_frame_id].page_id = *page_id;
+    pages_[next_frame_id].pin_count = 1;
+    pages_[next_frame_id].is_dirty = false;
+    std::memset(pages_[next_frame_id].data, 0, PAGE_SIZE);
+    PinFrame(next_frame_id);
+    return &pages_[next_frame_id];
 }
 
 bool BufferPoolManager::UnpinPage(page_id_t page_id, bool is_dirty) {
