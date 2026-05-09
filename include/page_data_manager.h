@@ -1,4 +1,4 @@
-#include "./ds/page_header.h"
+#include "../src/ds/page_header.h"
 #include "../include/buffer_pool_manager.h"
 #include <iostream>
 #include <cstring>
@@ -8,6 +8,7 @@ public:
     bool InsertTuple(Page* page, const char* tuple_data, uint16_t tuple_size, uint16_t* slot_id);
     bool GetTuple(Page* page, uint16_t slot_id, char* tuple_data, uint16_t* tuple_size);
     bool DeleteTuple(Page* page, uint16_t slot_id);
+    void test();
 private:
     bool HasEnoughSpace(Page* page, uint16_t tuple_size);  
 };
