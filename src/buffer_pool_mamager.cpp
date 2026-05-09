@@ -1,10 +1,7 @@
 #include "../include/buffer_pool_manager.h"
 #include <iostream>
 #include <cstring>
-struct PageHeader {
-    page_id_t page_id;
-    uint16_t free_space_offset;
-};
+#include "./ds/page_header.h"
 BufferPoolManager::BufferPoolManager(std::size_t pool_size, DiskManager* disk_manager)
     : pool_size_(pool_size), disk_manager_(disk_manager) {
         pages_.resize(pool_size);
@@ -94,6 +91,7 @@ Page* BufferPoolManager::NewPage(page_id_t* page_id) {
     auto* header = reinterpret_cast<PageHeader*>(pages_[next_frame_id].data);
     header->page_id = *page_id;
     header->free_space_offset = PAGE_SIZE - 1;
+    header->slot_count = 0;
     PinFrame(next_frame_id);
     return &pages_[next_frame_id];
 }
