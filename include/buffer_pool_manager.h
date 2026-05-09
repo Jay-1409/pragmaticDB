@@ -27,9 +27,9 @@ class BufferPoolManager {
         /**Faster O(1) lookups using unordered_map */
         std::unordered_map<page_id_t, frame_id_t> page_table_;
         std::deque<frame_id_t> free_list_;
+        /** we already have a linked list version of lru whcih is good */
         std::list<frame_id_t> lru_list_;
         std::unordered_map<frame_id_t, std::list<frame_id_t>::iterator> lru_pos_;
         page_id_t next_page_id_;
-
-        //TODO: Upgrade to linked list for lru
 };
+
