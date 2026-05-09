@@ -1,6 +1,10 @@
 #include "../include/buffer_pool_manager.h"
 #include <iostream>
 #include <cstring>
+struct PageHeader {
+    page_id_t page_id;
+    uint16_t free_space_offset;
+};
 BufferPoolManager::BufferPoolManager(std::size_t pool_size, DiskManager* disk_manager)
     : pool_size_(pool_size), disk_manager_(disk_manager) {
         pages_.resize(pool_size);
@@ -64,6 +68,7 @@ Page* BufferPoolManager::FetchPage(page_id_t page_id) {
     pages_[next_frame_id].page_id = page_id;
     pages_[next_frame_id].pin_count = 1;
     pages_[next_frame_id].is_dirty = false;
+
     PinFrame(next_frame_id);
     disk_manager_->ReadPage(page_id, pages_[next_frame_id].data);
     return &pages_[next_frame_id];
@@ -74,7 +79,7 @@ Page* BufferPoolManager::NewPage(page_id_t* page_id) {
     if(!GetFreeFrameOrVictim(&next_frame_id)) {
         return nullptr;
     }
-    if(pages_[next_frame_id].is_dirty) {
+    if(pages_[next_frame_id].page_id != INVALID_PAGE_ID && pages_[next_frame_id].is_dirty) {
         disk_manager_->WritePage(pages_[next_frame_id].page_id, pages_[next_frame_id].data);
     }
     if(pages_[next_frame_id].page_id != INVALID_PAGE_ID) {
@@ -86,6 +91,9 @@ Page* BufferPoolManager::NewPage(page_id_t* page_id) {
     pages_[next_frame_id].pin_count = 1;
     pages_[next_frame_id].is_dirty = false;
     std::memset(pages_[next_frame_id].data, 0, PAGE_SIZE);
+    auto* header = reinterpret_cast<PageHeader*>(pages_[next_frame_id].data);
+    header->page_id = *page_id;
+    header->free_space_offset = PAGE_SIZE - 1;
     PinFrame(next_frame_id);
     return &pages_[next_frame_id];
 }
