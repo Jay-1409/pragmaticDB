@@ -1,7 +1,7 @@
 #include<iostream>
-#include<./ds/page_header.h>
-#include<./ds/page.h>
-#include "../include/page_data_manager.h"
+#include "page.h"
+#include "page_header.h"
+#include "page_data_manager.h"
 void PageDataManager::test(){
     std::cout << "Page data manager is responding" << std::endl;
 }
@@ -34,5 +34,22 @@ bool PageDataManager::InsertTuple(Page* page, const char* tuple_data, uint16_t t
     *slot_id = header->slot_count;
     header->slot_count++;
     header->free_space_offset = new_free_space_offset;
+    return true;
+}
+bool PageDataManager::GetTuple(Page* page, uint16_t slot_id, char* tuple_data, uint16_t* tuple_size) {
+    /**
+     * Page -> input
+     * slot_id -> input
+     * tuple_data -> output
+     * tuple_size -> output
+     */
+    PageHeader* header = reinterpret_cast<PageHeader*>(page->data);
+    if(slot_id >= header->slot_count) {
+        // slot id starts from 0 
+        return false;
+    }
+    PageData* page_data = reinterpret_cast<PageData*>(page->data + sizeof(PageHeader) + slot_id * sizeof(PageData));
+    std::memcpy(tuple_data, page->data + page_data->offset, page_data->length);
+    *tuple_size = page_data->length;
     return true;
 }
