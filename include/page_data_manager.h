@@ -2,6 +2,7 @@
 #include "../include/buffer_pool_manager.h"
 #include <iostream>
 #include <cstring>
+#include "../src/ds/page_data.h"
 class PageDataManager {
 public:
     PageDataManager() = default;
@@ -24,7 +25,7 @@ private:
  * 
  * it has a slot count which indicated the index on which the next slot can be placed, slot here again is the offset and the size of the next tuple
  * 
- * 
+ * We go from right to left when to comes to inserting data, but the data is inserted in left to right format only, so when you read the data you have to start from the left ro right only to get the data in the correct order. 
  * 
  * 
 */

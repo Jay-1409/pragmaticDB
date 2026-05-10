@@ -13,3 +13,26 @@ bool PageDataManager::InitializePage(Page* page, page_id_t page_id) {
     header->slot_count = 0;
     return true;
 }
+bool PageDataManager::HasEnoughSpace(Page* page, uint16_t tuple_size) {
+    PageHeader* header = reinterpret_cast<PageHeader*>(page->data);
+    /** need to add a tupe and a slot  */
+    uint16_t required_space = tuple_size + sizeof(PageData);
+    uint16_t available_space = header->free_space_offset - (sizeof(PageHeader) + header->slot_count * sizeof(PageData));
+    return required_space <= available_space;
+}
+bool PageDataManager::InsertTuple(Page* page, const char* tuple_data, uint16_t tuple_size, uint16_t* slot_id) {
+    if(!HasEnoughSpace(page, tuple_size)) {
+        return false;
+    }
+    PageHeader* header = reinterpret_cast<PageHeader*>(page->data);
+    uint16_t new_free_space_offset = header->free_space_offset - tuple_size;
+    /** copy data into page, from left to right */
+    std::memcpy(page->data + new_free_space_offset, tuple_data, tuple_size);
+    PageData page_data{new_free_space_offset, tuple_size};
+    /** Insert the new slot */
+    std::memcpy(page->data + sizeof(PageHeader) + header->slot_count * sizeof(PageData), &page_data, sizeof(PageData));
+    *slot_id = header->slot_count;
+    header->slot_count++;
+    header->free_space_offset = new_free_space_offset;
+    return true;
+}
