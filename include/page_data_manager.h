@@ -5,6 +5,7 @@
 class PageDataManager {
 public:
     PageDataManager() = default;
+    bool InitializePage(Page* page, page_id_t page_id);
     bool InsertTuple(Page* page, const char* tuple_data, uint16_t tuple_size, uint16_t* slot_id);
     bool GetTuple(Page* page, uint16_t slot_id, char* tuple_data, uint16_t* tuple_size);
     bool DeleteTuple(Page* page, uint16_t slot_id);
