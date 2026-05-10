@@ -53,3 +53,16 @@ bool PageDataManager::GetTuple(Page* page, uint16_t slot_id, char* tuple_data, u
     *tuple_size = page_data->length;
     return true;
 }
+
+/** This is a vague implementation of tuple deletion, we need a better algorithm. */
+bool PageDataManager::DeleteTuple(Page* page, uint16_t slot_id) {
+    PageHeader* header = reinterpret_cast<PageHeader*>(page->data);
+    if(slot_id >= header->slot_count) {
+        return false;
+    }
+    /** we can just mark the slot as deleted by setting its length to 0 */
+    PageData* page_data = reinterpret_cast<PageData*>(page->data + sizeof(PageHeader) + slot_id * sizeof(PageData));
+    page_data->length = 0;
+    return true;
+}
+
