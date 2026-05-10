@@ -126,7 +126,6 @@ bool BufferPoolManager::FlushPage(page_id_t page_id) {
 
 void BufferPoolManager::FlushAllPages() {
     for(const auto& entry : page_table_) {
-        pages_[entry.second].is_dirty = false;
         FlushPage(entry.first);
     }
 }
