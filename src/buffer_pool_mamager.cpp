@@ -54,7 +54,7 @@ Page* BufferPoolManager::FetchPage(page_id_t page_id) {
     if(!GetFreeFrameOrVictim(&next_frame_id)) {
         return nullptr;
     }
-    if(pages_[next_frame_id].is_dirty) {
+    if(pages_[next_frame_id].page_id != INVALID_PAGE_ID && pages_[next_frame_id].is_dirty) {
         disk_manager_->WritePage(pages_[next_frame_id].page_id, pages_[next_frame_id].data);
     }
     if(pages_[next_frame_id].page_id != INVALID_PAGE_ID) {
