@@ -2,7 +2,7 @@
 #include "../include/buffer_pool_manager.h"
 #include <iostream>
 #include <cstring>
-#include "../src/ds/page_data.h"
+#include "../src/ds/slot.h"
 class PageDataManager {
 public:
     PageDataManager() = default;
@@ -12,8 +12,11 @@ public:
     bool DeleteTuple(Page* page, uint16_t slot_id);
     void test();
 private:
+    Slot* fetchSlot(uint16_t slot_id, Page* page);
     bool HasEnoughSpace(Page* page, uint16_t tuple_size);  
-};
+    void CompactOnePage(Page* page);
+    bool CompactAllPage();
+}; 
 
 
 /** Notes 

@@ -5,7 +5,13 @@
 void PageDataManager::test(){
     std::cout << "Page data manager is responding" << std::endl;
 }
-
+Slot* PageDataManager::fetchSlot(uint16_t slot_id, Page* page) {
+    PageHeader* header = reinterpret_cast<PageHeader*>(page->data);
+    if(slot_id >= header->slot_count) {
+        return nullptr;
+    }
+    return reinterpret_cast<Slot*>(page->data + sizeof(PageHeader) + slot_id * sizeof(Slot));
+}
 bool PageDataManager::InitializePage(Page* page, page_id_t page_id) {
     PageHeader* header = reinterpret_cast<PageHeader*>(page->data);
     header->page_id = page_id;
@@ -16,8 +22,8 @@ bool PageDataManager::InitializePage(Page* page, page_id_t page_id) {
 bool PageDataManager::HasEnoughSpace(Page* page, uint16_t tuple_size) {
     PageHeader* header = reinterpret_cast<PageHeader*>(page->data);
     /** need to add a tupe and a slot  */
-    uint16_t required_space = tuple_size + sizeof(PageData);
-    uint16_t available_space = header->free_space_offset - (sizeof(PageHeader) + header->slot_count * sizeof(PageData));
+    uint16_t required_space = tuple_size + sizeof(Slot);
+    uint16_t available_space = header->free_space_offset - (sizeof(PageHeader) + header->slot_count * sizeof(Slot));
     return required_space <= available_space;
 }
 bool PageDataManager::InsertTuple(Page* page, const char* tuple_data, uint16_t tuple_size, uint16_t* slot_id) {
@@ -28,9 +34,9 @@ bool PageDataManager::InsertTuple(Page* page, const char* tuple_data, uint16_t t
     uint16_t new_free_space_offset = header->free_space_offset - tuple_size;
     /** copy data into page, from left to right */
     std::memcpy(page->data + new_free_space_offset, tuple_data, tuple_size);
-    PageData page_data{new_free_space_offset, tuple_size};
+    Slot page_data{new_free_space_offset, tuple_size};
     /** Insert the new slot */
-    std::memcpy(page->data + sizeof(PageHeader) + header->slot_count * sizeof(PageData), &page_data, sizeof(PageData));
+    std::memcpy(page->data + sizeof(PageHeader) + header->slot_count * sizeof(Slot), &page_data, sizeof(Slot));
     *slot_id = header->slot_count;
     header->slot_count++;
     header->free_space_offset = new_free_space_offset;
@@ -48,21 +54,41 @@ bool PageDataManager::GetTuple(Page* page, uint16_t slot_id, char* tuple_data, u
         // slot id starts from 0 
         return false;
     }
-    PageData* page_data = reinterpret_cast<PageData*>(page->data + sizeof(PageHeader) + slot_id * sizeof(PageData));
+    Slot* page_data = reinterpret_cast<Slot*>(page->data + sizeof(PageHeader) + slot_id * sizeof(Slot));
     std::memcpy(tuple_data, page->data + page_data->offset, page_data->length);
     *tuple_size = page_data->length;
     return true;
 }
 
-/** This is a vague implementation of tuple deletion, we need a better algorithm. */
 bool PageDataManager::DeleteTuple(Page* page, uint16_t slot_id) {
     PageHeader* header = reinterpret_cast<PageHeader*>(page->data);
     if(slot_id >= header->slot_count) {
         return false;
     }
-    /** we can just mark the slot as deleted by setting its length to 0 */
-    PageData* page_data = reinterpret_cast<PageData*>(page->data + sizeof(PageHeader) + slot_id * sizeof(PageData));
-    page_data->length = 0;
+    /** we can just mark the slot as deleted by setting its length to 0 and offset to -1 */
+    Slot* s = reinterpret_cast<Slot*>(page->data + sizeof(PageHeader) + slot_id * sizeof(Slot));
+    s->length = 0;
+    s->offset = -1;
+    /** 
+     * Right now the space occupied by the deleted tuple remains occupied, 
+     * later on a compaction is ran.
+     */
     return true;
 }
 
+void PageDataManager::CompactOnePage(Page* page) {
+    PageHeader* header = reinterpret_cast<PageHeader*>(page->data);
+    int32_t write_ptr = static_cast<int32_t>(PAGE_SIZE) - 1;
+    for (uint16_t i = 0; i < header->slot_count; ++i) {
+        Slot* slot = fetchSlot(i, page);
+        if (slot->length == 0) {
+            continue;
+        }
+        write_ptr -= slot->length;
+        std::memmove(page->data + write_ptr,
+                     page->data + slot->offset,
+                     slot->length);
+        slot->offset = static_cast<uint16_t>(write_ptr);
+    }
+    header->free_space_offset = static_cast<uint16_t>(write_ptr);
+}
