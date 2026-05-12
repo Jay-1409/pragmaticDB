@@ -23,7 +23,7 @@ bool PageDataManager::HasEnoughSpace(Page* page, uint16_t tuple_size) {
     PageHeader* header = reinterpret_cast<PageHeader*>(page->data);
     /** need to add a tupe and a slot  */
     uint16_t required_space = tuple_size + sizeof(Slot);
-    uint16_t available_space = header->free_space_offset - (sizeof(PageHeader) + header->slot_count * sizeof(Slot));
+    uint16_t available_space = (header->free_space_offset + 1) - (sizeof(PageHeader) + header->slot_count * sizeof(Slot));
     return required_space <= available_space;
 }
 bool PageDataManager::InsertTuple(Page* page, const char* tuple_data, uint16_t tuple_size, uint16_t* slot_id) {
@@ -31,7 +31,7 @@ bool PageDataManager::InsertTuple(Page* page, const char* tuple_data, uint16_t t
         return false;
     }
     PageHeader* header = reinterpret_cast<PageHeader*>(page->data);
-    uint16_t new_free_space_offset = header->free_space_offset - tuple_size;
+    uint16_t new_free_space_offset = header->free_space_offset - tuple_size + 1;
     /** copy data into page, from left to right */
     std::memcpy(page->data + new_free_space_offset, tuple_data, tuple_size);
     Slot page_data{new_free_space_offset, tuple_size};
@@ -39,7 +39,7 @@ bool PageDataManager::InsertTuple(Page* page, const char* tuple_data, uint16_t t
     std::memcpy(page->data + sizeof(PageHeader) + header->slot_count * sizeof(Slot), &page_data, sizeof(Slot));
     *slot_id = header->slot_count;
     header->slot_count++;
-    header->free_space_offset = new_free_space_offset;
+    header->free_space_offset = new_free_space_offset - 1;
     return true;
 }
 bool PageDataManager::GetTuple(Page* page, uint16_t slot_id, char* tuple_data, uint16_t* tuple_size) {
@@ -68,7 +68,6 @@ bool PageDataManager::DeleteTuple(Page* page, uint16_t slot_id) {
     /** we can just mark the slot as deleted by setting its length to 0 and offset to -1 */
     Slot* s = reinterpret_cast<Slot*>(page->data + sizeof(PageHeader) + slot_id * sizeof(Slot));
     s->length = 0;
-    s->offset = -1;
     /** 
      * Right now the space occupied by the deleted tuple remains occupied, 
      * later on a compaction is ran.
@@ -84,11 +83,12 @@ void PageDataManager::CompactOnePage(Page* page) {
         if (slot->length == 0) {
             continue;
         }
-        write_ptr -= slot->length;
-        std::memmove(page->data + write_ptr,
+        int32_t new_offset = write_ptr - slot->length + 1;
+        std::memmove(page->data + new_offset,
                      page->data + slot->offset,
                      slot->length);
-        slot->offset = static_cast<uint16_t>(write_ptr);
+        slot->offset = static_cast<uint16_t>(new_offset);
+        write_ptr = new_offset - 1;
     }
     header->free_space_offset = static_cast<uint16_t>(write_ptr);
 }
