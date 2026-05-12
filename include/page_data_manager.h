@@ -15,7 +15,6 @@ private:
     Slot* fetchSlot(uint16_t slot_id, Page* page);
     bool HasEnoughSpace(Page* page, uint16_t tuple_size);  
     void CompactOnePage(Page* page);
-    bool CompactAllPage();
 }; 
 
 
@@ -31,4 +30,8 @@ private:
  * We go from right to left when to comes to inserting data, but the data is inserted in left to right format only, so when you read the data you have to start from the left ro right only to get the data in the correct order. 
  * 
  * 
+ * 
+ * The compaction strategy has two possibilites that we can choose from, 
+ * - we compact after regular intervals 
+ * - or we compact when required. 
 */
