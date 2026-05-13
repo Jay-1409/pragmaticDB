@@ -10,11 +10,11 @@ public:
     bool InsertTuple(Page* page, const char* tuple_data, uint16_t tuple_size, uint16_t* slot_id);
     bool GetTuple(Page* page, uint16_t slot_id, char* tuple_data, uint16_t* tuple_size);
     bool DeleteTuple(Page* page, uint16_t slot_id);
+    void CompactOnePage(Page* page);
     void test();
 private:
     Slot* fetchSlot(uint16_t slot_id, Page* page);
     bool HasEnoughSpace(Page* page, uint16_t tuple_size);  
-    void CompactOnePage(Page* page);
 }; 
 
 

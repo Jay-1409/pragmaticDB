@@ -39,6 +39,23 @@ RecordId RecordManager::Insert(const char* data, size_t size) {
 			buffer_pool_manager_.UnpinPage(page_id, false);
 		}
 	}
+	for (page_id_t page_id : page_ids_) {
+		Page* page = buffer_pool_manager_.FetchPage(page_id);
+		if (!page) {
+			continue;
+		}
+		page_data_manager_.CompactOnePage(page);
+		if (HasEnoughSpaceForInsert(page, tuple_size)) {
+			uint16_t slot_id = 0;
+			bool ok = page_data_manager_.InsertTuple(page, data, tuple_size, &slot_id);
+			buffer_pool_manager_.UnpinPage(page_id, ok);
+			if (ok) {
+				return RecordId{page_id, slot_id};
+			}
+			continue;
+		}
+		buffer_pool_manager_.UnpinPage(page_id, true);
+	}
 	page_id_t new_page_id = INVALID_PAGE_ID;
 	Page* new_page = buffer_pool_manager_.NewPage(&new_page_id);
 	if (!new_page) {
