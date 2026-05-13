@@ -21,5 +21,6 @@ int main() {
     test_responsiveness(dm, bpm, pdm);
     test tests;
     tests.TestBufferPoolManager();
+    tests.TestRecordManager();
     return 0;
 }

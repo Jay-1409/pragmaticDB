@@ -3,4 +3,5 @@
 class test {
     public:
     void TestBufferPoolManager();
+    void TestRecordManager();
 };
