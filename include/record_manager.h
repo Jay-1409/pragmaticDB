@@ -1,5 +1,6 @@
 #pragma once
 #include <cstddef>
+#include <cstdint>
 #include <vector>
 #include "../src/ds/record_id.h"
 #include "page_data_manager.h"
@@ -7,6 +8,7 @@ class RecordManager {
     public:
         RecordManager();
         bool Delete(RecordId r);
+        bool Get(const RecordId& rid, char* data, uint16_t* size);
         RecordId Insert(const char* data, size_t size);
         bool Update(const RecordId& rid, const char* data, size_t size);
     private:

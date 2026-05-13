@@ -17,6 +17,30 @@ bool HasEnoughSpaceForInsert(Page* page, uint16_t tuple_size) {
 RecordManager::RecordManager()
 	: buffer_pool_manager_(kDefaultPoolSize, &disk_manager_) {}
 
+bool RecordManager::Get(const RecordId& rid, char* data, uint16_t* size) {
+	if (rid.page_id == INVALID_PAGE_ID || data == nullptr || size == nullptr) {
+		return false;
+	}
+	Page* page = buffer_pool_manager_.FetchPage(rid.page_id);
+	if (!page) {
+		return false;
+	}
+	PageHeader* header = reinterpret_cast<PageHeader*>(page->data);
+	if (rid.slot_id >= header->slot_count) {
+		buffer_pool_manager_.UnpinPage(rid.page_id, false);
+		return false;
+	}
+	Slot* slot = reinterpret_cast<Slot*>(page->data + sizeof(PageHeader) +
+		rid.slot_id * sizeof(Slot));
+	if (slot->length == 0) {
+		buffer_pool_manager_.UnpinPage(rid.page_id, false);
+		return false;
+	}
+	bool ok = page_data_manager_.GetTuple(page, rid.slot_id, data, size);
+	buffer_pool_manager_.UnpinPage(rid.page_id, false);
+	return ok;
+}
+
 RecordId RecordManager::Insert(const char* data, size_t size) {
 	RecordId invalid{INVALID_PAGE_ID, 0};
 	if (data == nullptr || size == 0 || size > std::numeric_limits<uint16_t>::max()) {
