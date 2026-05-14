@@ -2,8 +2,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <vector>
-#include "../src/ds/record_id.h"
-#include "page_data_manager.h"
+#include "ds/record_id.h"
+#include "manager/page_data_manager.h"
 class RecordManager {
     public:
         RecordManager();

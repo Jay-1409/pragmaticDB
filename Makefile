@@ -1,14 +1,14 @@
 CXX = g++
-CXXFLAGS = -std=c++20 -Iinclude -Isrc/ds
+CXXFLAGS = -std=c++20 -Iinclude
 
 APP_BIN = app
 TEST_BIN = test_runner
 
 app:
-	$(CXX) $(CXXFLAGS) src/*.cpp main.cpp -o $(APP_BIN)
+	$(CXX) $(CXXFLAGS) src/manager/*.cpp src/factory/*.cpp src/type/*.cpp main.cpp -o $(APP_BIN)
 
 test-build:
-	$(CXX) $(CXXFLAGS) src/*.cpp tests/*.cpp -o $(TEST_BIN)
+	$(CXX) $(CXXFLAGS) src/manager/*.cpp src/factory/*.cpp src/type/*.cpp tests/*.cpp -o $(TEST_BIN)
 
 run: app
 	./$(APP_BIN)

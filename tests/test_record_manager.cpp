@@ -1,8 +1,8 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
-#include "../include/tests.h"
-#include "../include/record_manager.h"
+#include "tests.h"
+#include "manager/record_manager.h"
 
 void test::TestRecordManager() {
     int passed = 0, failed = 0;

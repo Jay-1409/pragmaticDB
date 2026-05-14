@@ -1,6 +1,6 @@
-#include "disk_manager.h"
-#include "buffer_pool_manager.h"
-#include "page_data_manager.h"
+#include "manager/disk_manager.h"
+#include "manager/buffer_pool_manager.h"
+#include "manager/page_data_manager.h"
 #include<iostream>
 #include <cstdio>
 #include <cstring>

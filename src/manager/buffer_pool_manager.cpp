@@ -1,4 +1,4 @@
-#include "../include/buffer_pool_manager.h"
+#include "manager/buffer_pool_manager.h"
 #include <iostream>
 #include <cstring>
 BufferPoolManager::BufferPoolManager(std::size_t pool_size, DiskManager* disk_manager)

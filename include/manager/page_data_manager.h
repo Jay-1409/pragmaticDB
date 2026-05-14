@@ -1,8 +1,8 @@
-#include "../src/ds/page_header.h"
-#include "../include/buffer_pool_manager.h"
+#include "ds/page_header.h"
+#include "manager/buffer_pool_manager.h"
 #include <iostream>
 #include <cstring>
-#include "../src/ds/slot.h"
+#include "ds/slot.h"
 class PageDataManager {
 public:
     PageDataManager() = default;

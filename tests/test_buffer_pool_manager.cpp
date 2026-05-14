@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-#include "../include/tests.h"
+#include "tests.h"
 
 void test::TestBufferPoolManager() {
     int passed = 0, failed = 0;
