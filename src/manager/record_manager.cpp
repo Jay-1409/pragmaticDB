@@ -1,6 +1,6 @@
-#include "../include/record_manager.h"
-#include "../src/ds/page_header.h"
-#include "../src/ds/slot.h"
+#include "manager/record_manager.h"
+#include "ds/page_header.h"
+#include "ds/slot.h"
 #include <cstring>
 #include <limits>
 

@@ -4,8 +4,8 @@
 #include <list>
 #include <unordered_map>
 #include <vector>
-#include "disk_manager.h"
-#include "page.h"
+#include "manager/disk_manager.h"
+#include "ds/page.h"
 class BufferPoolManager {
     public:
         BufferPoolManager(std::size_t pool_size, DiskManager* disk_manager);

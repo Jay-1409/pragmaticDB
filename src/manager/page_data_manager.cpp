@@ -1,7 +1,7 @@
 #include<iostream>
-#include "page.h"
-#include "page_header.h"
-#include "page_data_manager.h"
+#include "ds/page.h"
+#include "ds/page_header.h"
+#include "manager/page_data_manager.h"
 void PageDataManager::test(){
     std::cout << "Page data manager is responding" << std::endl;
 }

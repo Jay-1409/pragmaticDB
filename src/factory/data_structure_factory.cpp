@@ -1,4 +1,4 @@
-#include "../include/data_structure_factory.h"
+#include "factory/data_structure_factory.h"
 #include <iostream>
 #include <stdexcept>
 #include <cstdint>
