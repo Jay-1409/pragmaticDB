@@ -6,4 +6,5 @@ class test {
     void TestRecordManager();
     void TestValueClass();
     void TestSchemaClass();
+    void TestTupleClass();
 };
