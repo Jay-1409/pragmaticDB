@@ -1,11 +1,8 @@
-# StableDB — System Architecture
+# pragmaticDB — Architecture
 
-## How to use in Excalidraw
-Go to **Insert → Mermaid**, paste the code block below, and click **Insert**.
 
 ---
 
-## Full Architecture Diagram
 
 ```mermaid
 flowchart TD
@@ -109,7 +106,7 @@ flowchart TD
 
 ---
 
-## Key Data Flow: Write Path
+## Write Path
 ```
 User Code
   → Catalog.CreateTable("users", schema)         # register table
@@ -121,7 +118,7 @@ User Code
             → DiskManager.WritePage()            # flush dirty page to disk
 ```
 
-## Key Data Flow: Read Path
+## Read Path
 ```
 User Code
   → Catalog.GetTable("users")                    # lookup by name (O(1) hash)
