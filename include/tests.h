@@ -9,4 +9,5 @@ class test {
     void TestTupleClass();
     void TestTableManagerClass();
     void TestCatalogClass();
+    void TestTableIteratorClass();
 };

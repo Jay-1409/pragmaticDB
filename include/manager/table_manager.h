@@ -2,6 +2,8 @@
 
 #include "manager/record_manager.h"
 #include "type/tuple.h"
+#include "catalog/schema.h"
+#include "utils/table_iterator.h"
 
 class TableManager {
 public:
@@ -9,17 +11,28 @@ public:
 
     /**
      * @brief Inserts a tuple into the database.
-     * Implement this to get the raw data and size from the tuple,
-     * pass it to record_manager_.Insert(), and return the generated RecordId.
      */
     RecordId InsertTuple(const Tuple& tuple);
 
     /**
+     * @brief Deletes a tuple by its RecordId.
+     */
+    bool DeleteTuple(const RecordId& rid);
+
+    /**
      * @brief Retrieves a tuple from the database.
-     * Implement this to fetch the raw bytes from record_manager_.Get(),
-     * and construct a new Tuple object from those bytes.
      */
     Tuple GetTuple(const RecordId& rid, const Schema& schema);
+
+    /**
+     * @brief Returns an iterator pointing to the first valid tuple.
+     */
+    TableIterator Begin(const Schema& schema);
+
+    /**
+     * @brief Returns a sentinel iterator representing end-of-table.
+     */
+    TableIterator End(const Schema& schema);
 
 private:
     RecordManager record_manager_;

@@ -156,3 +156,13 @@ bool RecordManager::Update(const RecordId& rid, const char* data, size_t size) {
 	buffer_pool_manager_.UnpinPage(rid.page_id, true);
 	return true;
 }
+
+
+uint16_t RecordManager::GetSlotCount(page_id_t page_id) {
+	Page* page = buffer_pool_manager_.FetchPage(page_id);
+	if (!page) return 0;
+	PageHeader* header = reinterpret_cast<PageHeader*>(page->data);
+	uint16_t count = header->slot_count;
+	buffer_pool_manager_.UnpinPage(page_id, false);
+	return count;
+}

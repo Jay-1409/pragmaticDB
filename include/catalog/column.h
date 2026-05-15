@@ -20,3 +20,4 @@ private:
     TypeId type_id_;
     uint32_t length_;
 };
+

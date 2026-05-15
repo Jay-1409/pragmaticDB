@@ -10,5 +10,6 @@ int main() {
     tests.TestTupleClass();
     tests.TestTableManagerClass();
     tests.TestCatalogClass();
+    tests.TestTableIteratorClass();
     return 0;
 }

@@ -24,3 +24,5 @@ private:
     std::vector<Column> columns_;
     std::vector<uint32_t> offsets_;
 };
+
+/* it will have multiple number of column class*/
