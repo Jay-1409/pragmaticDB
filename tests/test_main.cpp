@@ -8,5 +8,6 @@ int main() {
     tests.TestValueClass();
     tests.TestSchemaClass();
     tests.TestTupleClass();
+    tests.TestTableHeapClass();
     return 0;
 }
