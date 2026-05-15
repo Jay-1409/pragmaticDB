@@ -9,5 +9,6 @@ int main() {
     tests.TestSchemaClass();
     tests.TestTupleClass();
     tests.TestTableManagerClass();
+    tests.TestCatalogClass();
     return 0;
 }

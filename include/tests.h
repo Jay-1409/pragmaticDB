@@ -8,4 +8,5 @@ class test {
     void TestSchemaClass();
     void TestTupleClass();
     void TestTableManagerClass();
+    void TestCatalogClass();
 };
