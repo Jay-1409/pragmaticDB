@@ -7,5 +7,5 @@ class test {
     void TestValueClass();
     void TestSchemaClass();
     void TestTupleClass();
-    void TestTableHeapClass();
+    void TestTableManagerClass();
 };
