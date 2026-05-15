@@ -7,5 +7,6 @@ int main() {
     tests.TestRecordManager();
     tests.TestValueClass();
     tests.TestSchemaClass();
+    tests.TestTupleClass();
     return 0;
 }
