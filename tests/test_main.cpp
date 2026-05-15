@@ -6,5 +6,6 @@ int main() {
     tests.TestBufferPoolManager();
     tests.TestRecordManager();
     tests.TestValueClass();
+    tests.TestSchemaClass();
     return 0;
 }
