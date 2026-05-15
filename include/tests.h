@@ -5,4 +5,5 @@ class test {
     void TestBufferPoolManager();
     void TestRecordManager();
     void TestValueClass();
+    void TestSchemaClass();
 };
