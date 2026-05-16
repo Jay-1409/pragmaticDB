@@ -51,17 +51,52 @@ Type `quit` or `exit` to disconnect.
 
 ## SQL Reference
 
+### DDL — Data Definition Language
+
 | Command | Status | Description |
 |---|---|---|
 | `CREATE TABLE` | ✅ Available | Create a new table with typed columns |
+| `DROP TABLE` | 🚧 Under work | Remove a table and all its data |
+| `ALTER TABLE` | ❌ Not planned | Modify an existing table's schema |
+
+### DML — Data Manipulation Language
+
+| Command | Status | Description |
+|---|---|---|
 | `INSERT INTO` | ✅ Available | Insert a row of values into a table |
-| `SELECT * FROM` | ✅ Available | Read all rows from a table |
-| `DELETE FROM` | ✅ Available | Delete rows, optionally filtered by a condition |
-| `COMMIT` | ✅ Available | Flush all pending data to disk |
-| `SELECT * FROM ... WHERE` | 🚧 Under work | Filter rows by column value |
-| `UPDATE ... SET ... WHERE` | 🚧 Under work | Modify existing row values |
-| `DROP TABLE` | 🚧 Under work | Remove a table and its data from the database |
-| `SHOW TABLES` | 🚧 Under work | List all tables registered in the catalog |
+| `SELECT * FROM` | ✅ Available | Read all rows from a table (full scan) |
+| `DELETE FROM` | ✅ Available | Delete rows, optionally filtered by `WHERE` |
+| `UPDATE ... SET` | 🚧 Under work | Modify existing row values |
+| `SELECT * FROM ... WHERE` | 🚧 Under work | Filter rows by column equality |
+| `SELECT col, col FROM` | 🚧 Under work | Project specific columns instead of `*` |
+| `ORDER BY` | 🚧 Under work | Sort result rows |
+| `LIMIT` | 🚧 Under work | Cap the number of rows returned |
+| `JOIN` | 🚧 Under work | Combine rows from multiple tables |
+| `GROUP BY` / `HAVING` | 🚧 Under work | Aggregate rows by grouping |
+
+### Aggregates
+
+| Function | Status | Description |
+|---|---|---|
+| `COUNT(*)` | 🚧 Under work | Count number of rows |
+| `SUM(col)` | 🚧 Under work | Sum of values in a column |
+| `AVG(col)` | 🚧 Under work | Average of values in a column |
+| `MIN(col)` / `MAX(col)` | 🚧 Under work | Minimum / maximum value in a column |
+
+### Transactions & Control
+
+| Command | Status | Description |
+|---|---|---|
+| `COMMIT` | ✅ Available | Flush all pending data and catalog to disk |
+| `BEGIN` | 🚧 Under work | Start an explicit transaction |
+| `ROLLBACK` | 🚧 Under work | Undo changes since last `BEGIN` |
+
+### Catalog & Utilities
+
+| Command | Status | Description |
+|---|---|---|
+| `SHOW TABLES` | 🚧 Under work | List all tables in the catalog |
+| `exit` / `quit` | ✅ Available | Disconnect the current client session |
 
 ---
 
@@ -138,6 +173,21 @@ COMMIT;
 - Always run before stopping the server, otherwise unsaved inserts/deletes are lost
 
 </details>
+
+<details>
+<summary><strong>exit / quit</strong> — disconnect from the server</summary>
+
+```
+exit
+quit
+```
+
+- Closes the current TCP client connection
+- The server stays running and accepts new connections
+- Does **not** flush data to disk — run `COMMIT` before disconnecting if you want your data saved
+
+</details>
+
 
 
 ## Persistence
