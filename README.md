@@ -70,9 +70,9 @@ Flush all dirty buffer-pool pages to disk and save the catalog.
 ```sql
 COMMIT;
 ```
-> `COMMIT` is **case-insensitive**. It writes all pending row data to disk AND updates the
-> catalog so the server remembers your table schemas on the next restart.
-> Always run it before stopping the server.
+> All SQL keywords are **case-insensitive** (`commit`, `COMMIT`, `Commit` all work).
+> `COMMIT` writes all pending row data to disk AND updates the catalog so the server
+> remembers your table schemas on the next restart. Always run it before stopping the server.
 
 ## Persistence
 All database files are stored in the `data/` directory inside your working directory.
@@ -95,6 +95,15 @@ data/
 ```bash
 rm -rf data/
 ```
+
+## Case Sensitivity
+
+| What | Case-sensitive? | Notes |
+|---|---|---|
+| SQL keywords (`CREATE`, `INSERT`, `SELECT`, `COMMIT`, ...) | No | `select`, `SELECT`, `Select` all work |
+| Column types (`INTEGER`, `BOOLEAN`) | No | `integer`, `Boolean` all work |
+| Boolean values (`true`, `false`) | No | `TRUE`, `False`, `FALSE` all work |
+| Table names | **Yes** | `users` and `Users` are different tables |
 
 ## Configuration
 No user-configurable options are exposed yet.

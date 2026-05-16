@@ -9,9 +9,16 @@ Value ValueFactory::FromString(const std::string& raw, TypeId type) {
             val.Set<int32_t>(std::stoi(raw));
             break;
 
-        case TypeId::BOOLEAN:
-            val.Set<int8_t>(raw == "true" ? 1 : 0);
+        case TypeId::BOOLEAN: {
+            std::string upper = raw;
+            for (auto& c : upper) c = toupper(c);
+            if (upper != "TRUE" && upper != "FALSE") {
+                throw std::runtime_error(
+                    "ValueFactory::FromString: expected 'true' or 'false', got '" + raw + "'");
+            }
+            val.Set<int8_t>(upper == "TRUE" ? 1 : 0);
             break;
+        }
 
         default:
             throw std::runtime_error(
