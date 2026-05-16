@@ -10,4 +10,5 @@ class test {
     void TestTableManagerClass();
     void TestCatalogClass();
     void TestTableIteratorClass();
+    void TestQueryEngineClass();
 };

@@ -1,22 +1,22 @@
-#include "manager/disk_manager.h"
-#include "manager/buffer_pool_manager.h"
-#include "manager/page_data_manager.h"
-#include<iostream>
-#include <cstdio>
-#include <cstring>
-#include <string>
-void test_responsiveness(DiskManager& dm, 
-                        BufferPoolManager& bpm,
-                        PageDataManager& pdm
-                    ) {
-    dm.test();
-    bpm.test();
-    pdm.test();
-}
+#include <iostream>
+#include "catalog/catalog.h"
+#include "query/parser.h"
+#include "query/executor.h"
+#include "network/tcp_server.h"
+
 int main() {
-    DiskManager dm;
-    BufferPoolManager bpm(10, &dm);
-    PageDataManager pdm;
-    test_responsiveness(dm, bpm, pdm);
+    std::cout << "Starting pragmaticDB Server...\n";
+
+    // Initialize core components
+    Catalog catalog;
+    Executor executor(catalog);
+    Parser parser;
+
+    // Start the network layer
+    TcpServer server(executor, parser);
+    
+    // This will block infinitely and serve clients
+    server.Start(8080);
+
     return 0;
 }
