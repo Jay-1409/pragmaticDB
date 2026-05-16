@@ -7,16 +7,15 @@
 An embedded SQL server for C++ applications that need structured, queryable storage.
 
 ## What is it?
-pragmaticDB is a C++20 database that runs as a TCP server and accepts SQL statements line by line. It lets you create tables, insert rows, and read them back with `SELECT *`. Both table schemas and row data survive server restarts — type `COMMIT;` to flush everything to disk and it will all be there when you start the server again. It is for C++ developers who want SQL queries and persistence without running an external database service.
+PragmaticDB runs as a TCP server and speaks SQL. Point any client at it, send statements, get results back. No Postgres installation, no SQLite wrapper, no third-party runtime sitting between your application and its data. You ship the server, you own the process.
+Schemas and rows survive restarts. Next time the server starts, everything is exactly where you left it.
 
 ## Features
-- **SQL over TCP:** Connect with any TCP client and send statements as plain text.
-- **Simple schema:** Define tables with `INTEGER` and `BOOLEAN` columns.
-- **Full persistence:** `COMMIT;` saves both schemas and row data to disk. Everything survives a server restart.
-- **Isolated table storage:** Each table lives in its own file inside `data/`, preventing any cross-table data corruption.
-- **Single binary:** Run the server without extra services or dependencies.
-- **Readable output:** Results are returned as line-oriented text.
-- **Quick build:** Build and run with `make`.
+- **SQL over TCP** — Send statements as plain text from any TCP client. No driver, no client library, no protocol overhead.
+- **Persistent storage** — `COMMIT;` flushes your schema and all row data to disk. Restart the server and everything comes back exactly as you left it.
+- **Per-table isolation** — Each table lives in its own file under `data/`. One table's corruption cannot touch another's.
+- **Zero dependencies** — A single binary. No services to manage, nothing to install alongside it.
+- **Native types** — Columns are declared as `INTEGER` or `BOOLEAN`. No stringly-typed storage.
 
 ## Installation / Build
 Requirements: a C++20-capable compiler and `make`.
