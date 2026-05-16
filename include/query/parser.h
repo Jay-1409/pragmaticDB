@@ -26,4 +26,5 @@ private:
     std::unique_ptr<Statement> ParseCreate(std::istringstream& ss);
     std::unique_ptr<Statement> ParseInsert(std::istringstream& ss);
     std::unique_ptr<Statement> ParseSelect(std::istringstream& ss);
+    std::unique_ptr<Statement> ParseDelete(std::istringstream& ss);
 };

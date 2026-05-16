@@ -41,6 +41,12 @@ public:
     bool operator==(const TableIterator& other) const;
     bool operator!=(const TableIterator& other) const;
 
+    /**
+     * @brief Returns the RecordId of the current tuple.
+     * Used by ExecuteDelete to delete the matched row.
+     */
+    RecordId GetRid() const { return rid_; }
+
 private:
     RecordId rid_;
     RecordManager* record_manager_;

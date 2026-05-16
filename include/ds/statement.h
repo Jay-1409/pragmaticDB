@@ -9,7 +9,8 @@ enum class StatementType {
     CREATE_TABLE,
     INSERT,
     SELECT,
-    COMMIT
+    COMMIT,
+    DELETE
 };
 
 // ── Base class ────────────────────────────────────────────────────────────────
@@ -46,4 +47,13 @@ struct SelectStatement : public Statement {
 // Flushes all dirty buffer pool pages to disk immediately.
 struct CommitStatement : public Statement {
     CommitStatement() : Statement(StatementType::COMMIT) {}
+};
+
+// ── DELETE FROM users [WHERE col = val]; ─────────────────────────────────────
+struct DeleteStatement : public Statement {
+    std::string table_name;
+    std::string where_column; // empty = delete all rows
+    std::string where_value;
+
+    DeleteStatement() : Statement(StatementType::DELETE) {}
 };

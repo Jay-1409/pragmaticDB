@@ -26,6 +26,7 @@ private:
     QueryResult ExecuteInsert(const InsertStatement& stmt);
     QueryResult ExecuteSelect(const SelectStatement& stmt);
     QueryResult ExecuteCommit();
+    QueryResult ExecuteDelete(const DeleteStatement& stmt);
 
     Catalog& catalog_;
 };

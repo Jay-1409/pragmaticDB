@@ -61,5 +61,44 @@ void test::TestQueryEngineClass() {
     ASSERT(res4.rows[1][0] == "99");
     ASSERT(res4.rows[1][1] == "false");
 
+    // 5. DELETE WHERE — remove only row with id = 42
+    auto stmt5 = parser.Parse("DELETE FROM users WHERE id = 42;");
+    ASSERT(stmt5 != nullptr);
+    ASSERT(stmt5->type == StatementType::DELETE);
+    auto res5 = executor.Execute(*stmt5);
+    ASSERT(res5.success);
+    ASSERT(res5.message == "1 row(s) deleted.");
+
+    // 6. SELECT — should now have only id=99 left
+    auto stmt6 = parser.Parse("SELECT * FROM users;");
+    auto res6 = executor.Execute(*stmt6);
+    ASSERT(res6.success);
+    ASSERT(res6.rows.size() == 1);
+    ASSERT(res6.rows[0][0] == "99");
+
+    // 7. DELETE WHERE non-existent value — should delete 0 rows
+    auto stmt7 = parser.Parse("DELETE FROM users WHERE id = 999;");
+    auto res7 = executor.Execute(*stmt7);
+    ASSERT(res7.success);
+    ASSERT(res7.message == "0 row(s) deleted.");
+
+    // 8. DELETE WHERE wrong column — should return an error
+    auto stmt8 = parser.Parse("DELETE FROM users WHERE nonexistent = 1;");
+    auto res8 = executor.Execute(*stmt8);
+    ASSERT(!res8.success);
+
+    // 9. DELETE all rows (no WHERE)
+    auto stmt9 = parser.Parse("DELETE FROM users;");
+    ASSERT(stmt9 != nullptr);
+    auto res9 = executor.Execute(*stmt9);
+    ASSERT(res9.success);
+    ASSERT(res9.message == "1 row(s) deleted."); // only 1 row left after step 5
+
+    // 10. SELECT — table should now be empty
+    auto stmt10 = parser.Parse("SELECT * FROM users;");
+    auto res10 = executor.Execute(*stmt10);
+    ASSERT(res10.success);
+    ASSERT(res10.rows.size() == 0);
+
     std::cout << "\nQuery Engine test summary: " << passed_count << " passed, " << failed_count << " failed.\n";
 }

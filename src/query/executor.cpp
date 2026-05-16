@@ -16,6 +16,8 @@ QueryResult Executor::Execute(const Statement& statement) {
             return ExecuteSelect(static_cast<const SelectStatement&>(statement));
         case StatementType::COMMIT:
             return ExecuteCommit();
+        case StatementType::DELETE:
+            return ExecuteDelete(static_cast<const DeleteStatement&>(statement));
     }
     return {false, "Unknown statement type", {}};
 }
@@ -75,6 +77,54 @@ QueryResult Executor::ExecuteSelect(const SelectStatement& stmt) {
 
         result.message = std::to_string(result.rows.size()) + " rows returned.";
         return result;
+
+    } catch (const std::runtime_error& e) {
+        return {false, e.what(), {}};
+    }
+}
+
+QueryResult Executor::ExecuteDelete(const DeleteStatement& stmt) {
+    try {
+        TableInfo* tbl = catalog_.GetTable(stmt.table_name);
+        Schema& schema = tbl->schema_;
+
+        // Collect matching RecordIds first (can't delete while iterating)
+        std::vector<RecordId> to_delete;
+
+        // Find the WHERE column index (if a WHERE clause was given)
+        int where_col_idx = -1;
+        if (!stmt.where_column.empty()) {
+            for (uint32_t i = 0; i < schema.GetColumnCount(); i++) {
+                if (schema.GetColumn(i).GetName() == stmt.where_column) {
+                    where_col_idx = static_cast<int>(i);
+                    break;
+                }
+            }
+            if (where_col_idx == -1) {
+                return {false, "Error: Column '" + stmt.where_column + "' not found.", {}};
+            }
+        }
+
+        for (auto it = tbl->table_->Begin(schema); it != tbl->table_->End(schema); ++it) {
+            if (where_col_idx == -1) {
+                // No WHERE clause: delete everything
+                to_delete.push_back(it.GetRid());
+            } else {
+                // WHERE clause: check if this row matches
+                Value val = (*it).GetValue(schema, where_col_idx);
+                TypeId type = schema.GetColumn(where_col_idx).GetType();
+                std::string row_val = ValueFactory::ToString(val, type);
+                if (row_val == stmt.where_value) {
+                    to_delete.push_back(it.GetRid());
+                }
+            }
+        }
+
+        for (const auto& rid : to_delete) {
+            tbl->table_->DeleteTuple(rid);
+        }
+
+        return {true, std::to_string(to_delete.size()) + " row(s) deleted.", {}};
 
     } catch (const std::runtime_error& e) {
         return {false, e.what(), {}};

@@ -15,8 +15,9 @@ std::unique_ptr<Statement> Parser::Parse(const std::string& sql) {
     if (keyword == "INSERT") return ParseInsert(ss);
     if (keyword == "SELECT") return ParseSelect(ss);
     if (keyword == "COMMIT") return std::make_unique<CommitStatement>();
+    if (keyword == "DELETE") return ParseDelete(ss);
 
-    return nullptr; // Unknown statement
+    return nullptr;
 }
 
 std::unique_ptr<Statement> Parser::ParseCreate(std::istringstream& ss) {
@@ -98,6 +99,38 @@ std::unique_ptr<Statement> Parser::ParseSelect(std::istringstream& ss) {
     // Remove trailing semicolon if present
     if (!stmt->table_name.empty() && stmt->table_name.back() == ';') {
         stmt->table_name.pop_back();
+    }
+
+    return stmt;
+}
+
+// Parses: DELETE FROM <table> [WHERE <col> = <val>];
+std::unique_ptr<Statement> Parser::ParseDelete(std::istringstream& ss) {
+    std::string keyword;
+    ss >> keyword;
+    for (auto& c : keyword) c = toupper(c);
+    if (keyword != "FROM") return nullptr;
+
+    auto stmt = std::make_unique<DeleteStatement>();
+    ss >> stmt->table_name;
+
+    // Remove trailing semicolon
+    if (!stmt->table_name.empty() && stmt->table_name.back() == ';') {
+        stmt->table_name.pop_back();
+    }
+
+    // Check for optional WHERE clause
+    if (ss >> keyword) {
+        for (auto& c : keyword) c = toupper(c);
+        if (keyword == "WHERE") {
+            std::string col, eq, val;
+            if (ss >> col >> eq >> val) {
+                stmt->where_column = col;
+                // Strip trailing semicolon from value
+                if (!val.empty() && val.back() == ';') val.pop_back();
+                stmt->where_value = val;
+            }
+        }
     }
 
     return stmt;
