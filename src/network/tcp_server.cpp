@@ -131,3 +131,6 @@ std::string TcpServer::FormatResult(const QueryResult& result) {
     oss << result.message << "\n";
     return oss.str();
 }
+
+/** this is the actual interface that the user /client talks with in the terminal after connecting to it !! */
+

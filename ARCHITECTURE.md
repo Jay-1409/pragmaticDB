@@ -1,8 +1,8 @@
 # pragmaticDB — Architecture
 
+A complete systems diagram of the database engine from raw disk bytes up to the TCP network layer.
 
 ---
-
 
 ```mermaid
 flowchart TD
@@ -12,7 +12,9 @@ flowchart TD
     classDef record   fill:#1a1a2e,stroke:#fca311,stroke-width:2px,color:#eee
     classDef typemod  fill:#1b2838,stroke:#ffe66d,stroke-width:2px,color:#eee
     classDef catalog  fill:#0d2137,stroke:#4ecdc4,stroke-width:2px,color:#eee
-    classDef future   fill:#111,stroke:#555,stroke-width:1px,color:#777,stroke-dasharray:6
+    classDef query    fill:#12263a,stroke:#a8dadc,stroke-width:2px,color:#eee
+    classDef network  fill:#0a1f1a,stroke:#52b788,stroke-width:2px,color:#eee
+    classDef factory  fill:#1f1b33,stroke:#c77dff,stroke-width:2px,color:#eee
 
     %% ── Layer 0 : Data Structures (ds/) ──────────────────────────────────
     subgraph DS["📦  Data Structures  (include/ds/)"]
@@ -21,6 +23,8 @@ flowchart TD
         SLOT["Slot\n──────\noffset: uint16_t\nlength: uint16_t"]:::ds
         PHDR["PageHeader\n──────\npage_id: page_id_t\nfree_space_offset: uint16_t\nslot_count: uint16_t"]:::ds
         RID["RecordId\n──────\npage_id: page_id_t\nslot_id: uint16_t"]:::ds
+        STMT["Statement (base)\n──────\nStatementType type\nCreateTableStatement\nInsertStatement\nSelectStatement"]:::ds
+        QR["QueryResult\n──────\nbool success\nstring message\nvector rows"]:::ds
         PAGE -- embedded in --> PHDR
         PAGE -- contains array of --> SLOT
         RID -- references --> PAGE
@@ -42,7 +46,7 @@ flowchart TD
 
     %% ── Layer 2 : Record Manager ─────────────────────────────────────────
     subgraph RECMGR["📋  Record Manager  (src/manager/)"]
-        RM["RecordManager\n──────\nInsert(data, size) → RecordId\nGet(rid, &data, &size)\nUpdate(rid, data, size)\nDelete(rid)\n──────\nOwns: DiskManager\n       BufferPoolManager\n       PageDataManager\nTracks: page_ids_: vector"]:::record
+        RM["RecordManager\n──────\nInsert(data, size) → RecordId\nGet(rid, &data, &size)\nUpdate(rid, data, size)\nDelete(rid)\nGetPageIds() → vector\nGetSlotCount(page_id) → uint16_t\n──────\nOwns: DiskManager\n       BufferPoolManager\n       PageDataManager\nTracks: page_ids_: vector"]:::record
     end
 
     STORAGE -->|"used internally by"| RM
@@ -52,17 +56,23 @@ flowchart TD
         direction TB
         TYPEID["TypeId  (enum)\n──────\nINVALID = 0\nBOOLEAN   ← 1 byte\nINTEGER   ← 4 bytes"]:::typemod
 
-        FACTORY["DsFactory\n──────\nget_structure(TypeId) → std::any\n(Factory pattern — allocates\ncorrect DS per type)"]:::typemod
-
         VAL["Value\n──────\ntype_id_: TypeId\ndata_: std::any\n──────\nGet&lt;T&gt;() → T\nSet&lt;T&gt;(val)\nSerializeToChar(char*)\nDeserializeFromChar(char*, TypeId)"]:::typemod
 
         TUP["Tuple\n──────\ndata_: vector&lt;char&gt;\n──────\nTuple(values, schema)  ← Serialize all Values\nTuple(raw_data, size)  ← Reconstruct from disk\nGetValue(schema, col_idx) → Value\nGetData() → const char*\nGetLength() → uint32_t"]:::typemod
 
-        TYPEID -->|"used by"| FACTORY
         TYPEID -->|"used by"| VAL
-        FACTORY -.->|"called by (intended)"| VAL
         VAL -->|"serialized into"| TUP
     end
+
+    %% ── Layer 3b : Factory (factory/) ───────────────────────────────────
+    subgraph FACTMOD["🏭  Factories  (include/factory/ & src/factory/)"]
+        direction LR
+        DSFACTORY["DsFactory\n──────\nget_structure(TypeId) → std::any\n(allocates correct DS per type)"]:::factory
+        VALFACTORY["ValueFactory\n──────\nFromString(raw, TypeId) → Value\nToString(Value, TypeId) → string\n(extends easily for new types)"]:::factory
+    end
+
+    TYPEID -->|"used by"| DSFACTORY
+    VALFACTORY -->|"creates/reads"| VAL
 
     %% ── Layer 4 : Catalog (catalog/) ─────────────────────────────────────
     subgraph CATMOD["📚  Catalog Module  (include/catalog/ & src/catalog/)"]
@@ -80,53 +90,109 @@ flowchart TD
         TINFO -->|"registered in"| CAT
     end
 
-    %% ── Layer 5 : Table Manager ──────────────────────────────────────────
-    subgraph TMGR["🗄️  Table Manager  (src/manager/)"]
-        TM["TableManager\n──────\nrecord_manager_: RecordManager\n──────\nInsertTuple(tuple) → RecordId\nGetTuple(rid, schema) → Tuple"]:::record
+    %% ── Layer 5 : Table Manager + Iterator ───────────────────────────────
+    subgraph TMGR["🗄️  Table Manager & Iterator  (src/manager/ & src/utils/)"]
+        direction LR
+        TM["TableManager\n──────\nrecord_manager_: RecordManager\n──────\nInsertTuple(tuple) → RecordId\nDeleteTuple(rid) → bool\nGetTuple(rid, schema) → Tuple\nBegin(schema) → TableIterator\nEnd(schema)   → TableIterator"]:::record
+
+        ITER["TableIterator\n──────\nrid_: RecordId  ← current cursor\npage_idx_: size_t\n──────\noperator*()  → Tuple\noperator++() → advance, skip deleted\noperator==() / !=()"]:::record
+
+        TM -->|"returns"| ITER
     end
 
     TINFO -->|"owns"| TM
     TM -->|"delegates to"| RM
+    ITER -->|"calls Get() on"| RM
 
-    %% ── Future Layers ────────────────────────────────────────────────────
-    subgraph FUTURE["🚧  Planned Modules  (src/network & src/query — empty)"]
+    %% ── Layer 6 : Query Engine (query/) ──────────────────────────────────
+    subgraph QUERYMOD["⚙️  Query Engine  (include/query/ & src/query/)"]
         direction LR
-        ITER["TableIterator\n(not yet built)"]:::future
-        NET["NetworkLayer\n(not yet built)"]:::future
-        QRY["QueryEngine / SQL Parser\n(not yet built)"]:::future
+        PARSER["Parser\n──────\nParse(sql) → unique_ptr&lt;Statement&gt;\n──────\nParseCreate(ss) → CreateTableStatement\nParseInsert(ss) → InsertStatement\nParseSelect(ss) → SelectStatement"]:::query
+
+        EXEC["Executor\n──────\ncatalog_: Catalog&\n──────\nExecute(statement) → QueryResult\n  ExecuteCreate → Catalog.CreateTable\n  ExecuteInsert → ValueFactory + InsertTuple\n  ExecuteSelect → TableIterator + ValueFactory"]:::query
+
+        PARSER -->|"produces Statement*"| EXEC
     end
 
-    %% ── Cross-layer Data Flow ────────────────────────────────────────────
-    SCH -.->|"provides byte offsets for"| TUP
-    TUP -->|"GetData() → raw char*"| TM
-    TM -->|"InsertTuple / GetTuple"| TUP
+    EXEC -->|"calls"| CAT
+    EXEC -->|"uses"| VALFACTORY
+    EXEC -->|"scans via"| ITER
 
-    CAT -.->|"entry point for"| FUTURE
+    %% ── Layer 7 : Network Layer (network/) ───────────────────────────────
+    subgraph NETMOD["🌐  Network Layer  (include/network/ & src/network/)"]
+        TCP["TcpServer\n──────\nexecutor_: Executor&\nparser_: Parser&\nserver_socket_: int\n──────\nStart(port) → binds, listens, accept loop\nHandleClient(socket) → read SQL, respond\nFormatResult(QueryResult) → string"]:::network
+    end
+
+    TCP -->|"passes SQL to"| PARSER
+    TCP -->|"executes via"| EXEC
+
+    %% ── main.cpp entry point ─────────────────────────────────────────────
+    MAIN["main.cpp\n──────\nCatalog catalog\nExecutor executor(catalog)\nParser parser\nTcpServer server(executor, parser)\nserver.Start(8080)"]:::network
+
+    MAIN -->|"initializes"| TCP
 ```
 
 ---
 
-## Write Path
+## Request / Response Flow (End to End)
+
 ```
-User Code
-  → Catalog.CreateTable("users", schema)         # register table
-  → TableManager.InsertTuple(tuple)              # pass logical row
-    → Tuple.GetData() / GetLength()              # extract raw bytes
-      → RecordManager.Insert(char*, size)        # hand off to storage
-        → PageDataManager.InsertTuple(Page*, …)  # write to page slot
-          → BufferPoolManager.NewPage()          # allocate/fetch page frame
-            → DiskManager.WritePage()            # flush dirty page to disk
+Client (nc localhost 8080)
+  → sends: "INSERT INTO users VALUES (42, true);"
+  
+TcpServer::HandleClient(socket)
+  → reads raw SQL string from socket
+  
+Parser::Parse(sql)
+  → reads first keyword: "INSERT"
+  → ParseInsert() → extracts table_name="users", raw_values=["42","true"]
+  → returns InsertStatement
+  
+Executor::Execute(InsertStatement)
+  → ExecuteInsert():
+    → Catalog.GetTable("users")       # lookup by name hash O(1)
+    → Schema& schema = info->schema_  # get column types
+    → ValueFactory::FromString("42",  INTEGER) → Value(int32_t=42)
+    → ValueFactory::FromString("true",BOOLEAN) → Value(int8_t=1)
+    → Tuple(values, schema)           # serialize to raw bytes
+    → TableManager.InsertTuple(tuple)
+      → RecordManager.Insert(char*, size)
+        → PageDataManager.InsertTuple(Page*, slot)  ← finds free space
+          → BufferPoolManager.FetchPage / NewPage    ← RAM cache
+            → DiskManager.WritePage()               ← bytes hit disk
+      → returns RecordId {page_id, slot_id}
+  → returns QueryResult { success=true, "1 row inserted." }
+
+TcpServer::FormatResult(result)
+  → formats string → "1 row inserted.\n"
+  → send() back to client socket
 ```
 
-## Read Path
+## Full Table Scan Flow (SELECT)
+
 ```
-User Code
-  → Catalog.GetTable("users")                    # lookup by name (O(1) hash)
-  → TableManager.GetTuple(RecordId, schema)      # request a row by location
-    → RecordManager.Get(rid, buffer, &size)       # fetch raw bytes
-      → PageDataManager.GetTuple(Page*, slot_id) # read from slot directory
-        → BufferPoolManager.FetchPage(page_id)   # hit cache or load from disk
-    → Tuple(buffer, size)                        # reconstruct from raw bytes
-  → Tuple.GetValue(schema, col_idx)              # deserialize one column
-    → Value.DeserializeFromChar(src, TypeId)     # produce typed Value
+Client
+  → sends: "SELECT * FROM users;"
+
+Parser::ParseSelect()  →  SelectStatement { table_name="users" }
+
+Executor::ExecuteSelect()
+  → Catalog.GetTable("users") → TableInfo*
+  → for (auto it = table->Begin(schema); it != table->End(schema); ++it)
+      TableIterator::operator++():
+        → RecordManager.GetSlotCount(page_id)  ← reads PageHeader
+        → RecordManager.Get(rid, buffer, size)  ← skips if length==0 (deleted)
+        → moves to next page via GetPageIds() when page exhausted
+        → sets rid={INVALID_PAGE_ID} when done → equals End()
+      TableIterator::operator*():
+        → RecordManager.Get(rid) → raw bytes
+        → Tuple(buffer, size)
+      Tuple.GetValue(schema, i):
+        → reads at schema.GetColOffset(i)
+        → Value.DeserializeFromChar()
+      ValueFactory::ToString(val, type) → "42", "true"
+  → QueryResult { rows=[["42","true"]] }
+
+TcpServer → formats → sends to client
 ```
+
