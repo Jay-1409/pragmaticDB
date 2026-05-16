@@ -470,6 +470,9 @@ No user-configurable options are exposed yet.
 - Server listens on port 8080 and accepts one client at a time.
 - No authentication or TLS.
 
+## Benchmarking 
+<img width="656" height="251" alt="image" src="https://github.com/user-attachments/assets/7529c3e4-fa13-4cf0-8f41-9ccb801acf83" />
+
 ## Contributing
 ```bash
 make app
