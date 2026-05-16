@@ -51,71 +51,44 @@ Type `quit` or `exit` to disconnect.
 
 ## SQL Reference
 
-### DDL — Data Definition Language
-
-| Command | Status | Description |
-|---|---|---|
-| `CREATE TABLE` | ✅ Available | Create a new table with typed columns |
-| `DROP TABLE` | 🚧 Under work | Remove a table and all its data |
-| `ALTER TABLE` | ❌ Not planned | Modify an existing table's schema |
-
-### DML — Data Manipulation Language
-
-| Command | Status | Description |
-|---|---|---|
-| `INSERT INTO` | ✅ Available | Insert a row of values into a table |
-| `SELECT * FROM` | ✅ Available | Read all rows from a table (full scan) |
-| `DELETE FROM` | ✅ Available | Delete rows, optionally filtered by `WHERE` |
-| `UPDATE ... SET` | 🚧 Under work | Modify existing row values |
-| `SELECT * FROM ... WHERE` | 🚧 Under work | Filter rows by column equality |
-| `SELECT col, col FROM` | 🚧 Under work | Project specific columns instead of `*` |
-| `ORDER BY` | 🚧 Under work | Sort result rows |
-| `LIMIT` | 🚧 Under work | Cap the number of rows returned |
-| `JOIN` | 🚧 Under work | Combine rows from multiple tables |
-| `GROUP BY` / `HAVING` | 🚧 Under work | Aggregate rows by grouping |
-
-### Aggregates
-
-| Function | Status | Description |
-|---|---|---|
-| `COUNT(*)` | 🚧 Under work | Count number of rows |
-| `SUM(col)` | 🚧 Under work | Sum of values in a column |
-| `AVG(col)` | 🚧 Under work | Average of values in a column |
-| `MIN(col)` / `MAX(col)` | 🚧 Under work | Minimum / maximum value in a column |
-
-### Transactions & Control
-
-| Command | Status | Description |
-|---|---|---|
-| `COMMIT` | ✅ Available | Flush all pending data and catalog to disk |
-| `BEGIN` | 🚧 Under work | Start an explicit transaction |
-| `ROLLBACK` | 🚧 Under work | Undo changes since last `BEGIN` |
-
-### Catalog & Utilities
-
-| Command | Status | Description |
-|---|---|---|
-| `SHOW TABLES` | 🚧 Under work | List all tables in the catalog |
-| `exit` / `quit` | ✅ Available | Disconnect the current client session |
-
 ---
 
+### `CREATE TABLE`
+
+| Syntax | Status |
+|---|---|
+| `CREATE TABLE t (col TYPE);` | ✅ Implemented |
+| `CREATE TABLE t (col1 TYPE, col2 TYPE, ...);` | ✅ Implemented |
+| `CREATE TABLE IF NOT EXISTS t (...);` | ❌ Not implemented |
+
 <details>
-<summary><strong>CREATE TABLE</strong> — define a new table</summary>
+<summary>Example — single column</summary>
 
 ```sql
-CREATE TABLE users (id INTEGER, is_active BOOLEAN);
 CREATE TABLE products (price INTEGER);
 ```
-
-- Column types supported: `INTEGER` (4 bytes), `BOOLEAN` (1 byte)
-- Type names are case-insensitive: `integer`, `INTEGER`, `Integer` all work
-- The schema is written to `data/catalog.db` immediately on creation
-
 </details>
 
 <details>
-<summary><strong>INSERT INTO</strong> — add a row</summary>
+<summary>Example — multiple columns</summary>
+
+```sql
+CREATE TABLE users (id INTEGER, is_active BOOLEAN);
+```
+</details>
+
+---
+
+### `INSERT INTO`
+
+| Syntax | Status |
+|---|---|
+| `INSERT INTO t VALUES (v1, v2, ...);` | ✅ Implemented |
+| `INSERT INTO t (col1, col2) VALUES (v1, v2);` | ❌ Not implemented |
+| `INSERT INTO t VALUES (...), (...), ...;` | ❌ Not implemented |
+
+<details>
+<summary>Example — insert a full row</summary>
 
 ```sql
 INSERT INTO users VALUES (42, true);
@@ -123,71 +96,138 @@ INSERT INTO users VALUES (99, FALSE);
 INSERT INTO users VALUES (7, True);
 ```
 
-- Values must match the column order defined in `CREATE TABLE`
-- Boolean values are case-insensitive: `true`, `TRUE`, `True`, `false`, `FALSE`, `False`
-- Inserted rows live in the buffer pool RAM until you `COMMIT`
-
+Values must match the column order from `CREATE TABLE`. Booleans are case-insensitive.
 </details>
 
+---
+
+### `SELECT`
+
+| Syntax | Status |
+|---|---|
+| `SELECT * FROM t;` | ✅ Implemented |
+| `SELECT * FROM t WHERE col = val;` | 🚧 Under work |
+| `SELECT col1, col2 FROM t;` | 🚧 Under work |
+| `SELECT col1, col2 FROM t WHERE col = val;` | 🚧 Under work |
+| `SELECT * FROM t ORDER BY col;` | 🚧 Under work |
+| `SELECT * FROM t LIMIT n;` | 🚧 Under work |
+| `SELECT * FROM t ORDER BY col LIMIT n;` | 🚧 Under work |
+| `SELECT COUNT(*) FROM t;` | 🚧 Under work |
+| `SELECT SUM(col) FROM t;` | 🚧 Under work |
+| `SELECT AVG(col) FROM t;` | 🚧 Under work |
+| `SELECT MIN(col) FROM t;` | 🚧 Under work |
+| `SELECT MAX(col) FROM t;` | 🚧 Under work |
+| `SELECT * FROM t1 JOIN t2 ON t1.col = t2.col;` | 🚧 Under work |
+
 <details>
-<summary><strong>SELECT * FROM</strong> — read all rows</summary>
+<summary>Example — select all rows</summary>
 
 ```sql
 SELECT * FROM users;
-SELECT * FROM products;
 ```
 
-- Returns every column for every row in the table
-- Performs a full table scan (no indexes)
-- Output format: `col1 | col2 | col3` with a row count at the end
-
+Performs a full table scan. Output format: `col1 | col2 | ...` with a row count footer.
 </details>
 
+---
+
+### `DELETE`
+
+| Syntax | Status |
+|---|---|
+| `DELETE FROM t;` | ✅ Implemented |
+| `DELETE FROM t WHERE col = val;` | ✅ Implemented |
+| `DELETE FROM t WHERE col = val AND col2 = val2;` | ❌ Not implemented |
+| `DELETE FROM t WHERE col > val;` | ❌ Not implemented |
+
 <details>
-<summary><strong>DELETE FROM</strong> — remove rows</summary>
+<summary>Example — delete all rows</summary>
 
 ```sql
--- Delete a specific row
-DELETE FROM users WHERE id = 42;
-
--- Delete all rows in the table
 DELETE FROM users;
 ```
-
-- `WHERE` supports equality checks (`=`) on a single column
-- Without `WHERE`, all rows are deleted
-- Deletions are in-memory until you `COMMIT`
-
 </details>
 
 <details>
-<summary><strong>COMMIT</strong> — persist everything to disk</summary>
+<summary>Example — delete by condition</summary>
+
+```sql
+DELETE FROM users WHERE id = 42;
+```
+
+Matches on exact equality for one column. Collected then deleted — does not modify during iteration.
+</details>
+
+---
+
+### `UPDATE`
+
+| Syntax | Status |
+|---|---|
+| `UPDATE t SET col = val;` | 🚧 Under work |
+| `UPDATE t SET col = val WHERE col2 = val2;` | 🚧 Under work |
+| `UPDATE t SET col1 = v1, col2 = v2 WHERE col3 = v3;` | 🚧 Under work |
+
+---
+
+### `DROP TABLE`
+
+| Syntax | Status |
+|---|---|
+| `DROP TABLE t;` | 🚧 Under work |
+| `DROP TABLE IF EXISTS t;` | 🚧 Under work |
+
+---
+
+### `SHOW TABLES`
+
+| Syntax | Status |
+|---|---|
+| `SHOW TABLES;` | 🚧 Under work |
+
+---
+
+### `COMMIT`
+
+| Syntax | Status |
+|---|---|
+| `COMMIT;` | ✅ Implemented |
+| `COMMIT` (no semicolon) | ✅ Implemented |
+
+<details>
+<summary>Example</summary>
 
 ```sql
 COMMIT;
 ```
 
-- Flushes all dirty buffer-pool pages to their `data/table_N.db` file
-- Updates `data/catalog.db` with the latest page locations and schema info
-- All SQL keywords are **case-insensitive** — `commit`, `COMMIT`, `Commit` all work
-- Always run before stopping the server, otherwise unsaved inserts/deletes are lost
+- Flushes all dirty buffer-pool pages to `data/table_N.db`
+- Updates `data/catalog.db` with the latest page map and schema
+- All keywords are case-insensitive: `commit`, `COMMIT`, `Commit` all work
+- Always run before stopping the server — unsaved inserts/deletes will be lost otherwise
 
 </details>
 
+---
+
+### `exit` / `quit`
+
+| Syntax | Status |
+|---|---|
+| `exit` | ✅ Implemented |
+| `quit` | ✅ Implemented |
+
 <details>
-<summary><strong>exit / quit</strong> — disconnect from the server</summary>
+<summary>Example</summary>
 
 ```
 exit
-quit
 ```
 
-- Closes the current TCP client connection
-- The server stays running and accepts new connections
-- Does **not** flush data to disk — run `COMMIT` before disconnecting if you want your data saved
+Closes the TCP connection. The server keeps running for new clients.  
+**Does not flush data to disk** — run `COMMIT` first if you want your changes saved.
 
 </details>
-
 
 
 ## Persistence
