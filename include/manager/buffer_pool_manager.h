@@ -16,6 +16,8 @@ class BufferPoolManager {
         void FlushAllPages();
         bool DeletePage(page_id_t page_id);
         void test();
+        page_id_t GetNextPageId() const { return next_page_id_; }
+        void SetNextPageId(page_id_t id) { next_page_id_ = id; }
     private:
         bool GetFreeFrameOrVictim(frame_id_t* frame_id);
         void PinFrame(frame_id_t frame_id);

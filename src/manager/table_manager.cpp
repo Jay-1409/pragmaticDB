@@ -1,5 +1,8 @@
 #include "manager/table_manager.h"
 
+TableManager::TableManager(const std::string& filename)
+    : record_manager_(filename) {}
+
 RecordId TableManager::InsertTuple(const Tuple& tuple) {
     return record_manager_.Insert(tuple.GetData(), tuple.GetLength());
 }

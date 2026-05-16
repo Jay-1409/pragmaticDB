@@ -6,7 +6,7 @@
 #include "manager/page_data_manager.h"
 class RecordManager {
     public:
-        RecordManager();
+        explicit RecordManager(const std::string& filename = "data.db");
         bool Delete(RecordId r);
         bool Get(const RecordId& rid, char* data, uint16_t* size);
         RecordId Insert(const char* data, size_t size);
@@ -14,6 +14,9 @@ class RecordManager {
         const std::vector<page_id_t>& GetPageIds() const { return page_ids_; }        /** to provide the table iterator the page ids */
         uint16_t GetSlotCount(page_id_t page_id);  /** returns number of slots on a given page */
         void Flush() { buffer_pool_manager_.FlushAllPages(); }  /** write all dirty pages to disk */
+        void SetPageIds(const std::vector<page_id_t>& ids) { page_ids_ = ids; } /** restore page list from catalog */
+        page_id_t GetNextPageId() const { return buffer_pool_manager_.GetNextPageId(); }
+        void SetNextPageId(page_id_t id) { buffer_pool_manager_.SetNextPageId(id); }
     private:
         static constexpr std::size_t kDefaultPoolSize = 10;
         DiskManager disk_manager_;

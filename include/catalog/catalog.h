@@ -46,6 +46,18 @@ public:
      */
     std::vector<TableInfo*> GetAllTables();
 
+    /**
+     * @brief Serializes all table definitions (names, schemas, page IDs) to a binary file.
+     * Called automatically on every CreateTable() and COMMIT.
+     */
+    void SaveCatalog(const std::string& path = "catalog.db");
+
+    /**
+     * @brief Deserializes table definitions from a binary file and reconstructs
+     * the in-memory catalog. Called once on server startup.
+     */
+    void LoadCatalog(const std::string& path = "catalog.db");
+
 private:
     std::unordered_map<table_oid_t, std::unique_ptr<TableInfo>> tables_;
     std::unordered_map<std::string, table_oid_t> table_names_;

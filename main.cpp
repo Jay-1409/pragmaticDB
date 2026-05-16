@@ -9,6 +9,7 @@ int main() {
 
     // Initialize core components
     Catalog catalog;
+    catalog.LoadCatalog(); // Reload table definitions from previous session
     Executor executor(catalog);
     Parser parser;
 

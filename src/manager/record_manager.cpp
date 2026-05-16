@@ -14,8 +14,8 @@ bool HasEnoughSpaceForInsert(Page* page, uint16_t tuple_size) {
 }
 }
 
-RecordManager::RecordManager()
-	: buffer_pool_manager_(kDefaultPoolSize, &disk_manager_) {}
+RecordManager::RecordManager(const std::string& filename)
+	: disk_manager_(filename), buffer_pool_manager_(kDefaultPoolSize, &disk_manager_) {}
 
 bool RecordManager::Get(const RecordId& rid, char* data, uint16_t* size) {
 	if (rid.page_id == INVALID_PAGE_ID || data == nullptr || size == nullptr) {

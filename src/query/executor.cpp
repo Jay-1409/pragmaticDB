@@ -25,6 +25,8 @@ QueryResult Executor::ExecuteCommit() {
     for (auto* table : all_tables) {
         table->table_->Flush();
     }
+    // Update catalog.db with latest page IDs after flushing
+    catalog_.SaveCatalog();
     return {true, "COMMIT: " + std::to_string(all_tables.size()) + " table(s) flushed to disk.", {}};
 }
 
