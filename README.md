@@ -1,6 +1,6 @@
-![Build](https://img.shields.io/badge/build-unknown-lightgrey)
-![License](https://img.shields.io/badge/license-unknown-lightgrey)
-![Version](https://img.shields.io/badge/version-unknown-lightgrey)
+![Build](https://img.shields.io/github/actions/workflow/status/jay-1409/pragmaticDB/ci.yml?branch=stable)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-0.0.1-blue)
 ![Language](https://img.shields.io/badge/language-C%2B%2B20-blue)
 
 ## pragmaticDB
