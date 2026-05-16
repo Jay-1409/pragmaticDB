@@ -7,12 +7,13 @@
 An embedded SQL server for C++ applications that need structured, queryable storage.
 
 ## What is it?
-pragmaticDB is a C++20 database that runs as a TCP server and accepts SQL statements line by line. It lets you create tables, insert rows, and read them back with `SELECT *`. Data is persisted to a single file in the working directory, so results survive restarts. It is for C++ developers who want SQL queries and persistence without running an external database service.
+pragmaticDB is a C++20 database that runs as a TCP server and accepts SQL statements line by line. It lets you create tables, insert rows, and read them back with `SELECT *`. Both table schemas and row data survive server restarts — type `COMMIT;` to flush everything to disk and it will all be there when you start the server again. It is for C++ developers who want SQL queries and persistence without running an external database service.
 
 ## Features
 - **SQL over TCP:** Connect with any TCP client and send statements as plain text.
 - **Simple schema:** Define tables with `INTEGER` and `BOOLEAN` columns.
-- **Manual commit:** Type `COMMIT;` to flush all dirty pages to disk immediately.
+- **Full persistence:** `COMMIT;` saves both schemas and row data to disk. Everything survives a server restart.
+- **Isolated table storage:** Each table lives in its own file inside `data/`, preventing any cross-table data corruption.
 - **Single binary:** Run the server without extra services or dependencies.
 - **Readable output:** Results are returned as line-oriented text.
 - **Quick build:** Build and run with `make`.
@@ -65,12 +66,35 @@ Read all rows from a table.
 SELECT * FROM users;
 ```
 
-Flush all dirty buffer-pool pages to disk manually.
+Flush all dirty buffer-pool pages to disk and save the catalog.
 ```sql
 COMMIT;
 ```
-> `COMMIT` is **case-insensitive** and writes all pending data from RAM to `data.db`.
-> Run it before stopping the server to ensure your inserts are not lost.
+> `COMMIT` is **case-insensitive**. It writes all pending row data to disk AND updates the
+> catalog so the server remembers your table schemas on the next restart.
+> Always run it before stopping the server.
+
+## Persistence
+All database files are stored in the `data/` directory inside your working directory.
+
+```
+data/
+├── catalog.db      ← table registry: names, schemas, page ownership, OIDs
+├── table_0.db      ← raw page data for the first table created
+├── table_1.db      ← raw page data for the second table created
+└── ...             ← one file per table
+```
+
+**How it works:**
+- `CREATE TABLE` immediately writes the schema to `data/catalog.db`.
+- `INSERT` rows live in RAM (buffer pool) until you `COMMIT`.
+- `COMMIT` flushes all dirty pages to the corresponding `table_N.db` file and updates `catalog.db` with the latest page locations.
+- On the next `make run`, the server reads `catalog.db` and all your tables are already registered — no need to recreate them.
+
+**Starting fresh:** Delete the `data/` directory to wipe all tables and data.
+```bash
+rm -rf data/
+```
 
 ## Configuration
 No user-configurable options are exposed yet.
@@ -80,7 +104,7 @@ No user-configurable options are exposed yet.
 - Only `INTEGER` and `BOOLEAN` column types are supported.
 - No `WHERE`, `UPDATE`, `DELETE`, `JOIN`, `ORDER BY`, or aggregation features.
 - No automatic transactions or concurrency control.
-- **Catalog is not persisted** — table schemas are lost on server restart even after `COMMIT`. Raw page data survives in `data.db` but the server cannot reconstruct table definitions yet.
+- No indexes — `SELECT *` always performs a full table scan.
 - Server listens on port 8080 and accepts one client at a time.
 - No authentication or TLS.
 
