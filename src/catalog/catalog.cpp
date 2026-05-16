@@ -31,3 +31,11 @@ TableInfo* Catalog::GetTable(table_oid_t table_oid) {
     }
     return it->second.get();
 }
+
+std::vector<TableInfo*> Catalog::GetAllTables() {
+    std::vector<TableInfo*> result;
+    for (auto& [oid, info] : tables_) {
+        result.push_back(info.get());
+    }
+    return result;
+}

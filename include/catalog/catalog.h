@@ -37,9 +37,14 @@ public:
 
     /**
      * @brief Retrieves a table by OID.
-     * Implement this to look up the OID in tables_.
      */
     TableInfo* GetTable(table_oid_t table_oid);
+
+    /**
+     * @brief Returns pointers to all registered tables.
+     * Used by COMMIT to flush every table's buffer pool to disk.
+     */
+    std::vector<TableInfo*> GetAllTables();
 
 private:
     std::unordered_map<table_oid_t, std::unique_ptr<TableInfo>> tables_;

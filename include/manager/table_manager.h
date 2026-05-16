@@ -20,6 +20,11 @@ public:
     bool DeleteTuple(const RecordId& rid);
 
     /**
+     * @brief Flushes all dirty pages for this table to disk.
+     */
+    void Flush() { record_manager_.Flush(); }
+
+    /**
      * @brief Retrieves a tuple from the database.
      */
     Tuple GetTuple(const RecordId& rid, const Schema& schema);

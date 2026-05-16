@@ -14,8 +14,18 @@ QueryResult Executor::Execute(const Statement& statement) {
             return ExecuteInsert(static_cast<const InsertStatement&>(statement));
         case StatementType::SELECT:
             return ExecuteSelect(static_cast<const SelectStatement&>(statement));
+        case StatementType::COMMIT:
+            return ExecuteCommit();
     }
     return {false, "Unknown statement type", {}};
+}
+
+QueryResult Executor::ExecuteCommit() {
+    auto all_tables = catalog_.GetAllTables();
+    for (auto* table : all_tables) {
+        table->table_->Flush();
+    }
+    return {true, "COMMIT: " + std::to_string(all_tables.size()) + " table(s) flushed to disk.", {}};
 }
 
 QueryResult Executor::ExecuteCreate(const CreateTableStatement& stmt) {
@@ -26,6 +36,7 @@ QueryResult Executor::ExecuteCreate(const CreateTableStatement& stmt) {
         return {false, e.what(), {}};
     }
 }
+
 
 QueryResult Executor::ExecuteInsert(const InsertStatement& stmt) {
     try {

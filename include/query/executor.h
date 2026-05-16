@@ -25,6 +25,7 @@ private:
     QueryResult ExecuteCreate(const CreateTableStatement& stmt);
     QueryResult ExecuteInsert(const InsertStatement& stmt);
     QueryResult ExecuteSelect(const SelectStatement& stmt);
+    QueryResult ExecuteCommit();
 
     Catalog& catalog_;
 };

@@ -14,6 +14,7 @@ std::unique_ptr<Statement> Parser::Parse(const std::string& sql) {
     if (keyword == "CREATE") return ParseCreate(ss);
     if (keyword == "INSERT") return ParseInsert(ss);
     if (keyword == "SELECT") return ParseSelect(ss);
+    if (keyword == "COMMIT") return std::make_unique<CommitStatement>();
 
     return nullptr; // Unknown statement
 }

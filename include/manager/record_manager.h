@@ -13,6 +13,7 @@ class RecordManager {
         bool Update(const RecordId& rid, const char* data, size_t size);
         const std::vector<page_id_t>& GetPageIds() const { return page_ids_; }        /** to provide the table iterator the page ids */
         uint16_t GetSlotCount(page_id_t page_id);  /** returns number of slots on a given page */
+        void Flush() { buffer_pool_manager_.FlushAllPages(); }  /** write all dirty pages to disk */
     private:
         static constexpr std::size_t kDefaultPoolSize = 10;
         DiskManager disk_manager_;

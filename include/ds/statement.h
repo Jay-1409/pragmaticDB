@@ -8,7 +8,8 @@
 enum class StatementType {
     CREATE_TABLE,
     INSERT,
-    SELECT
+    SELECT,
+    COMMIT
 };
 
 // ── Base class ────────────────────────────────────────────────────────────────
@@ -39,4 +40,10 @@ struct SelectStatement : public Statement {
     std::string table_name;
 
     SelectStatement() : Statement(StatementType::SELECT) {}
+};
+
+// ── COMMIT; ───────────────────────────────────────────────────────────────────
+// Flushes all dirty buffer pool pages to disk immediately.
+struct CommitStatement : public Statement {
+    CommitStatement() : Statement(StatementType::COMMIT) {}
 };
