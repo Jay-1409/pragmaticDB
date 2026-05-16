@@ -3,19 +3,19 @@
 ![Version](https://img.shields.io/badge/version-unknown-lightgrey)
 ![Language](https://img.shields.io/badge/language-C%2B%2B20-blue)
 
-## StableDB
-A minimal embedded SQL database for small C++ projects and demos.
+## pragmaticDB
+A tiny local SQL server for prototypes and learning.
 
 ## What is it?
-StableDB is a small C++20 database that lets you define tables, insert rows, and read them back with SQL. It runs in-process and stores data in a single local file in the working directory. The SQL surface is intentionally small so behavior is easy to understand and test. It is aimed at developers exploring database ideas or needing a lightweight SQL layer for prototypes.
+pragmaticDB is a small C++20 database that runs as a local TCP server and accepts SQL statements line by line. It lets you create tables, insert rows, and read them back with `SELECT *`. Data is persisted to a single local file in the working directory, so results survive restarts. It is aimed at developers exploring database concepts or needing a minimal SQL surface for demos.
 
 ## Features
-- **Simple SQL:** Supports `CREATE TABLE`, `INSERT`, and `SELECT *`.
-- **Typed columns:** `INTEGER` and `BOOLEAN` columns are supported.
-- **In-process usage:** No server or daemon to run.
-- **Persistent data:** Rows are stored on disk between runs.
-- **Table reads:** `SELECT *` returns all rows in a table.
-- **Single-command build:** Build and run tests with `make`.
+- **SQL over TCP:** Connect with any TCP client and send statements as plain text.
+- **Simple schema:** Define tables with `INTEGER` and `BOOLEAN` columns.
+- **Persistent storage:** Data is saved to disk between runs.
+- **Local server:** One binary you can run on your machine without extra services.
+- **Readable output:** Results are returned as line-oriented text.
+- **Quick build:** Build and run with `make`.
 
 ## Installation / Build
 Requirements: a C++20-capable compiler and `make`.
@@ -26,18 +26,26 @@ make test
 ```
 
 ## Quick Start
-Build and run the test runner, which exercises the SQL below (see [tests/test_query_engine.cpp](tests/test_query_engine.cpp)).
+Start the server and connect with a TCP client.
 
 ```bash
-make test
+make run
 ```
 
+In another terminal:
+```bash
+nc localhost 8080
+```
+
+Then run SQL:
 ```sql
 CREATE TABLE users (id INTEGER, is_active BOOLEAN);
 INSERT INTO users VALUES (42, true);
 INSERT INTO users VALUES (99, false);
 SELECT * FROM users;
 ```
+
+Type `quit` or `exit` to disconnect.
 
 ## Usage
 Create a table with typed columns.
@@ -64,7 +72,8 @@ No user-configurable options are exposed yet.
 - Only `INTEGER` and `BOOLEAN` column types are supported.
 - No `WHERE`, `UPDATE`, `DELETE`, `JOIN`, `ORDER BY`, or aggregation features.
 - No transactions, concurrency control, or indexes.
-- No interactive CLI or network server is included.
+- Server listens on port 8080 and accepts one client at a time.
+- No authentication or TLS.
 
 ## Contributing
 ```bash
