@@ -11,5 +11,6 @@ int main() {
     tests.TestTableManagerClass();
     tests.TestCatalogClass();
     tests.TestTableIteratorClass();
+    tests.TestQueryEngineClass();
     return 0;
 }
