@@ -1,6 +1,9 @@
 #include "catalog/catalog.h"
 #include <fstream>
 #include <stdexcept>
+#include <filesystem>
+
+static constexpr const char* DB_DIR = "data/";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -26,7 +29,7 @@ TableInfo* Catalog::CreateTable(const std::string& table_name, const Schema& sch
     }
 
     table_oid_t oid = next_table_oid_++;
-    std::string filename = "table_" + std::to_string(oid) + ".db";
+    std::string filename = std::string(DB_DIR) + "table_" + std::to_string(oid) + ".db";
     auto table = std::make_unique<TableManager>(filename);
     auto table_info = std::make_unique<TableInfo>(schema, table_name, std::move(table), oid);
     
@@ -81,6 +84,9 @@ std::vector<TableInfo*> Catalog::GetAllTables() {
 //       [page_id:    int32_t]
 
 void Catalog::SaveCatalog(const std::string& path) {
+    // Ensure the data directory exists before writing
+    std::filesystem::create_directories(DB_DIR);
+
     std::ofstream out(path, std::ios::binary | std::ios::trunc);
     if (!out) return;
 
@@ -159,8 +165,8 @@ void Catalog::LoadCatalog(const std::string& path) {
         page_id_t next_pid = 0;
         in.read(reinterpret_cast<char*>(&next_pid), sizeof(next_pid));
 
-        // Reconstruct TableInfo using the OID-based filename
-        std::string filename = "table_" + std::to_string(oid) + ".db";
+        // Reconstruct TableInfo using the OID-based filename in data/
+        std::string filename = std::string(DB_DIR) + "table_" + std::to_string(oid) + ".db";
         auto table = std::make_unique<TableManager>(filename);
         table->SetPageIds(page_ids);
         table->SetNextPageId(next_pid);
