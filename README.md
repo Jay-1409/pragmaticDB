@@ -498,7 +498,7 @@ make bench
 | **SELECT * scan** | Full table scan throughput across all inserted rows. |
 | **COMMIT latency** | Time taken to flush *N* dirty pages from RAM to disk atomically. |
 
-*(Example output image below)*  
+*(benchmarking results, macbook air m4)*  
 <img width="656" height="251" alt="image" src="https://github.com/user-attachments/assets/7529c3e4-fa13-4cf0-8f41-9ccb801acf83" />
 
 ## Contributing
