@@ -4,7 +4,7 @@
 ![Language](https://img.shields.io/badge/language-C%2B%2B20-blue)
 
 ## pragmaticDB
-An embedded SQL server for C++ applications that need structured, queryable storage.
+An single binary dbms for C++ applications that need structured, queryable storage.
 
 ## What is it?
 PragmaticDB runs as a TCP server and speaks SQL. Point any client at it, send statements, get results back. No Postgres installation, no SQLite wrapper, no third-party runtime sitting between your application and its data. You ship the server, you own the process.
