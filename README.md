@@ -2,7 +2,8 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Version](https://img.shields.io/badge/version-0.0.1-blue)
 ![Language](https://img.shields.io/badge/language-C%2B%2B20-blue)
-
+OPEN FOR CONTIRBUTIONS
+--
 ## pragmaticDB
 An single binary dbms for C++ applications that need structured, queryable storage.
 
