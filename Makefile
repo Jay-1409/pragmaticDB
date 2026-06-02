@@ -6,10 +6,10 @@ TEST_BIN = test_runner
 BENCH_BIN = bench
 
 app:
-	$(CXX) $(CXXFLAGS) src/manager/*.cpp src/factory/*.cpp src/type/*.cpp src/catalog/*.cpp src/utils/*.cpp src/query/*.cpp src/network/*.cpp main.cpp -o $(APP_BIN)
+	$(CXX) $(CXXFLAGS) src/manager/*.cpp src/factory/*.cpp src/type/*.cpp src/catalog/*.cpp src/utils/*.cpp src/query/*.cpp src/network/*.cpp src/kv_store/*.cpp main.cpp -o $(APP_BIN)
 
 test-build:
-	$(CXX) $(CXXFLAGS) src/manager/*.cpp src/factory/*.cpp src/type/*.cpp src/catalog/*.cpp src/utils/*.cpp src/query/*.cpp src/network/*.cpp tests/*.cpp -o $(TEST_BIN)
+	$(CXX) $(CXXFLAGS) src/manager/*.cpp src/factory/*.cpp src/type/*.cpp src/catalog/*.cpp src/utils/*.cpp src/query/*.cpp src/network/*.cpp src/kv_store/*.cpp tests/*.cpp -o $(TEST_BIN)
 
 run: app
 	./$(APP_BIN)

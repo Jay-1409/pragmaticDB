@@ -4,6 +4,7 @@
 #include "../ds/statement.h"
 #include "../ds/query_result.h"
 #include "catalog/schema.h"
+#include "kv_store/kv_store.h"
 /**
  * @brief Executes a parsed Statement against the database Catalog.
  *
@@ -13,13 +14,17 @@
  */
 class Executor {
 public:
-    explicit Executor(Catalog& catalog) : catalog_(catalog) {}
+    explicit Executor(Catalog& catalog) : catalog_(catalog) {
+        kv_store_.Load(); // Load KV store state from disk on startup
+    }
 
     /**
      * @brief Execute the given statement and return a QueryResult.
      * Implement this to switch on statement.type and call the matching handler.
      */
     QueryResult Execute(const Statement& statement);
+
+    KVStore& GetKVStore() { return kv_store_; }
 
 private:
     QueryResult ExecuteCreate(const CreateTableStatement& stmt);
@@ -28,5 +33,12 @@ private:
     QueryResult ExecuteCommit();
     QueryResult ExecuteDelete(const DeleteStatement& stmt);
 
+    // KV handlers
+    QueryResult ExecuteKVPut(const KVPutStatement& stmt);
+    QueryResult ExecuteKVGet(const KVGetStatement& stmt);
+    QueryResult ExecuteKVDelete(const KVDeleteStatement& stmt);
+    QueryResult ExecuteKVExists(const KVExistsStatement& stmt);
+
     Catalog& catalog_;
+    KVStore  kv_store_;
 };

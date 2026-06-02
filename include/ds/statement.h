@@ -10,7 +10,13 @@ enum class StatementType {
     INSERT,
     SELECT,
     COMMIT,
-    DELETE
+    DELETE,
+
+    // KV store commands
+    KV_PUT,
+    KV_GET,
+    KV_DELETE,
+    KV_EXISTS
 };
 
 // ── Base class ────────────────────────────────────────────────────────────────
@@ -56,4 +62,29 @@ struct DeleteStatement : public Statement {
     std::string where_value;
 
     DeleteStatement() : Statement(StatementType::DELETE) {}
+};
+
+// KV Commands
+struct KVPutStatement : public Statement {
+    std::string key;
+    std::string value;
+    KVPutStatement() : Statement(StatementType::KV_PUT) {}
+};
+
+// Get user's value for a key
+struct KVGetStatement : public Statement {
+    std::string key;
+    KVGetStatement() : Statement(StatementType::KV_GET) {}
+};
+
+// Delete a key-value pair
+struct KVDeleteStatement : public Statement {
+    std::string key;
+    KVDeleteStatement() : Statement(StatementType::KV_DELETE) {}
+};
+
+// Check if a key exists
+struct KVExistsStatement : public Statement {
+    std::string key;
+    KVExistsStatement() : Statement(StatementType::KV_EXISTS) {}
 };

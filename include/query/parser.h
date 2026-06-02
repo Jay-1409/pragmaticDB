@@ -11,6 +11,12 @@
  *   CREATE TABLE <name> (<col> <type>, ...);
  *   INSERT INTO <name> VALUES (<val>, ...);
  *   SELECT * FROM <name>;
+ *   
+ * KV store commands:
+ *  PUT <key> <value>
+ *  GET <key>
+ *  DELETE <key>
+ *  EXISTS <key>
  */
 class Parser {
 public:
@@ -27,4 +33,9 @@ private:
     std::unique_ptr<Statement> ParseInsert(std::istringstream& ss);
     std::unique_ptr<Statement> ParseSelect(std::istringstream& ss);
     std::unique_ptr<Statement> ParseDelete(std::istringstream& ss);
+
+    // KV store command parsers
+    std::unique_ptr<Statement> ParseKVPut(std::istringstream& ss);
+    std::unique_ptr<Statement> ParseKVGet(std::istringstream& ss);
+    std::unique_ptr<Statement> ParseKVExists(std::istringstream& ss);
 };
