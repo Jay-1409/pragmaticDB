@@ -11,4 +11,5 @@ class test {
     void TestCatalogClass();
     void TestTableIteratorClass();
     void TestQueryEngineClass();
+    void TestKVStore();
 };

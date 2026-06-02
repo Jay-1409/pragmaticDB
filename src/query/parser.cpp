@@ -11,6 +11,30 @@ std::unique_ptr<Statement> Parser::Parse(const std::string& sql) {
     // Convert to uppercase for case-insensitive matching
     for (auto& c : keyword) c = toupper(c);
 
+    // KV commands
+    if (keyword == "PUT") return ParseKVPut(ss);
+    if (keyword == "GET") return ParseKVGet(ss);
+    if (keyword == "EXISTS") return ParseKVExists(ss);
+    if (keyword == "DELETE") {
+        // Need to peek next word to distinguish between DELETE FROM and KV DELETE
+        std::string next;
+        if (ss >> next) {
+            std::string up = next;
+            for (auto& c : up) c = toupper(c);
+            if (up != "FROM") {
+                auto stmt = std::make_unique<KVDeleteStatement>();
+                stmt->key = next;
+                return stmt;
+            }
+            // If it's "FROM", we fall through to SQL DELETE parsing
+            std::string rest;
+            std::getline(ss, rest);
+            std::istringstream rebuilt(next + " " + rest);
+            return ParseDelete(rebuilt);
+        }
+        return nullptr; // Invalid DELETE syntax
+    }
+    // SQL statements
     if (keyword == "CREATE") return ParseCreate(ss);
     if (keyword == "INSERT") return ParseInsert(ss);
     if (keyword == "SELECT") return ParseSelect(ss);
@@ -133,5 +157,40 @@ std::unique_ptr<Statement> Parser::ParseDelete(std::istringstream& ss) {
         }
     }
 
+    return stmt;
+}
+
+
+// PUT <key> <value>
+std::unique_ptr<Statement> Parser::ParseKVPut(std::istringstream& ss) {
+    auto stmt = std::make_unique<KVPutStatement>();
+    if (!(ss >> stmt->key >> stmt->value)) return nullptr;
+
+    std::string value;
+    if (!std::getline(ss, value)) return nullptr;
+
+    
+    if (!value.empty() && value.front() == ' ') value.erase(0, 1);
+    
+    if (!value.empty() && value.back() == ';') value.pop_back();
+
+    if (value.empty()) return nullptr;
+    stmt->value = value;
+    return stmt;
+}
+
+// GET <key>
+std::unique_ptr<Statement> Parser::ParseKVGet(std::istringstream& ss) {
+    auto stmt = std::make_unique<KVGetStatement>();
+    if (!(ss >> stmt->key)) return nullptr;
+    if (!stmt->key.empty() && stmt->key.back() == ';') stmt->key.pop_back();
+    return stmt;
+}
+
+// EXISTS <key>
+std::unique_ptr<Statement> Parser::ParseKVExists(std::istringstream& ss) {
+    auto stmt = std::make_unique<KVExistsStatement>();
+    if (!(ss >> stmt->key)) return nullptr;
+    if (!stmt->key.empty() && stmt->key.back() == ';') stmt->key.pop_back();
     return stmt;
 }

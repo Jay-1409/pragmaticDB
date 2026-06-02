@@ -18,6 +18,15 @@ QueryResult Executor::Execute(const Statement& statement) {
             return ExecuteCommit();
         case StatementType::DELETE:
             return ExecuteDelete(static_cast<const DeleteStatement&>(statement));
+        
+        case StatementType::KV_PUT:
+            return ExecuteKVPut(static_cast<const KVPutStatement&>(statement));
+        case StatementType::KV_GET:
+            return ExecuteKVGet(static_cast<const KVGetStatement&>(statement));
+        case StatementType::KV_DELETE:
+            return ExecuteKVDelete(static_cast<const KVDeleteStatement&>(statement));
+        case StatementType::KV_EXISTS:
+            return ExecuteKVExists(static_cast<const KVExistsStatement&>(statement));
     }
     return {false, "Unknown statement type", {}};
 }
@@ -29,6 +38,7 @@ QueryResult Executor::ExecuteCommit() {
     }
     // Update catalog.db with latest page IDs after flushing
     catalog_.SaveCatalog();
+    kv_store_.Flush(); 
     return {true, "COMMIT: " + std::to_string(all_tables.size()) + " table(s) flushed to disk.", {}};
 }
 
@@ -129,4 +139,33 @@ QueryResult Executor::ExecuteDelete(const DeleteStatement& stmt) {
     } catch (const std::runtime_error& e) {
         return {false, e.what(), {}};
     }
+}
+
+QueryResult Executor::ExecuteKVPut(const KVPutStatement& stmt) {
+    kv_store_.Put(stmt.key, stmt.value);
+    return {true, "Key '" + stmt.key + "' set to '" + stmt.value + "'.", {}};
+}
+
+QueryResult Executor::ExecuteKVGet(const KVGetStatement& stmt) {
+    bool found = false;
+    std::string value = kv_store_.Get(stmt.key, found);
+    if (!found) {
+        return {false, "(nil)", {}};
+    } else {
+        return {true, value, {{value}}};
+    }
+}
+
+QueryResult Executor::ExecuteKVDelete(const KVDeleteStatement& stmt) {
+    bool existed = kv_store_.Delete(stmt.key);
+    if (!existed) {
+        return {false, "(nil) - key not found", {}};
+    } else {
+        return {true, "DEL 1", {}};
+    }
+}
+
+QueryResult Executor::ExecuteKVExists(const KVExistsStatement& stmt) {
+    bool exists = kv_store_.Exists(stmt.key);
+    return {true, exists ? "1" : "0", {{exists ? "1" : "0"}}};
 }
