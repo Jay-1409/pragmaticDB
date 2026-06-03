@@ -49,7 +49,7 @@ All new features must be implemented as **additions**, not modifications:
 
 ## Rule 4: Test Preservation
 
-- **Never modify or delete existing test files.**
+- **Never modify or delete existing test logic.** Avoid modifying existing test files. If the project uses a central test runner/registry (e.g., `tests/test_main.cpp`, `include/tests.h`), appending a new test invocation or declaration there is allowed when necessary to wire new tests.
 - All existing tests must continue to compile and pass after your changes.
 - New tests go in **new test files** (e.g., `tests/test_join.cpp`).
 - After making changes, verify that `make test` passes all existing tests.

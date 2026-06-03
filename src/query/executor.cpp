@@ -198,7 +198,7 @@ QueryResult Executor::ExecuteJoin(const SelectStatement& stmt) {
         result.message = std::to_string(result.rows.size()) + " rows returned.";
         return result;
 
-    } catch (const std::runtime_error& e) {
+    } catch (const std::exception& e) {
         return {false, e.what(), {}};
     }
 }

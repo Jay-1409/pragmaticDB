@@ -22,3 +22,6 @@ public:
         return {}; // always returns empty
     }
 };
+
+// Static default instance with stable lifetime for use as a default reference
+static NullIndexProvider kDefaultIndexProvider{};

@@ -22,9 +22,10 @@ void test::TestJoin() {
     Executor executor(catalog);
     Parser parser;
 
-    auto exec = [&](const std::string& sql) {
+    auto exec = [&](const std::string& sql) -> QueryResult {
         auto stmt = parser.Parse(sql);
         ASSERT_JOIN(stmt != nullptr);
+        if (!stmt) return {false, "Parse failed", {}};
         return executor.Execute(*stmt);
     };
 

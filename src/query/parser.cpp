@@ -114,7 +114,11 @@ std::unique_ptr<Statement> Parser::ParseSelect(std::istringstream& ss) {
                 for (auto& c : on_kw) c = toupper(c);
                 if (on_kw == "ON") {
                     stmt->join_condition = ParseExpression(ss);
+                } else {
+                    return nullptr; // JOIN requires ON clause
                 }
+            } else {
+                return nullptr; // JOIN requires ON clause
             }
         } else {
             // Not a JOIN, restore stream (might be just a semicolon)
@@ -237,7 +241,7 @@ std::unique_ptr<Expression> Parser::ParseAtom(std::istringstream& ss) {
     if (token == "(") {
         auto expr = ParseExpression(ss);
         std::string close;
-        ss >> close; // consume ")"
+        if (!(ss >> close) || close != ")") return nullptr; // missing closing paren
         return expr;
     }
     
@@ -258,7 +262,11 @@ std::unique_ptr<Expression> Parser::ParseAtom(std::istringstream& ss) {
     
     std::string token_upper = token;
     for (auto& c : token_upper) c = toupper(c);
-    if (token_upper == "TRUE" || token_upper == "FALSE" || (token[0] >= '0' && token[0] <= '9') || (token[0] == '-' && token.size() > 1)) {
+    if (token_upper == "TRUE") {
+        return std::make_unique<ConstantExpression>("true");
+    } else if (token_upper == "FALSE") {
+        return std::make_unique<ConstantExpression>("false");
+    } else if ((token[0] >= '0' && token[0] <= '9') || (token[0] == '-' && token.size() > 1)) {
         return std::make_unique<ConstantExpression>(token);
     }
     

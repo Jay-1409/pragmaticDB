@@ -15,7 +15,7 @@
  */
 class Executor {
 public:
-    explicit Executor(Catalog& catalog, const IndexProvider& idx = NullIndexProvider{})
+    explicit Executor(Catalog& catalog, const IndexProvider& idx = kDefaultIndexProvider)
         : catalog_(catalog), index_provider_(idx) {}
 
     /**

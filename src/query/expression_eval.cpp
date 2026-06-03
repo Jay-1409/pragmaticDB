@@ -15,6 +15,13 @@ static int32_t GetColIdx(const Schema& schema, const std::string& col_name, cons
             }
             size_t dot_pos = cols[i].GetName().find('.');
             if (dot_pos != std::string::npos && cols[i].GetName().substr(dot_pos + 1) == col_name) {
+                // Check for ambiguity: see if another column also matches
+                for (size_t j = i + 1; j < cols.size(); ++j) {
+                    size_t dot_pos2 = cols[j].GetName().find('.');
+                    if (dot_pos2 != std::string::npos && cols[j].GetName().substr(dot_pos2 + 1) == col_name) {
+                        throw std::runtime_error("Ambiguous column reference: '" + col_name + "'. Use table-qualified name.");
+                    }
+                }
                 return i;
             }
         }
