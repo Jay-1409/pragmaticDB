@@ -17,6 +17,15 @@ class Value {
             data_ = std::make_any<T>(val);
         }        
         void test();
+
+        TypeId GetTypeId() const { return type_id_; }
+
+        bool CompareEquals(const Value& other) const;
+        bool CompareLessThan(const Value& other) const;
+        bool CompareGreaterThan(const Value& other) const;
+        bool CompareLessThanOrEqual(const Value& other) const;
+        bool CompareGreaterThanOrEqual(const Value& other) const;
+        bool CompareNotEqual(const Value& other) const;
     private:
         TypeId type_id_;
         std::any data_; 

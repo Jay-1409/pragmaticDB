@@ -35,3 +35,42 @@ void Value::DeserializeFromChar(const char *data, TypeId type_id) {
         data_ = std::make_any<int8_t>(val);
     }
 }
+
+bool Value::CompareEquals(const Value& other) const {
+    if (type_id_ != other.type_id_) return false;
+    if (type_id_ == TypeId::INTEGER) return Get<int32_t>() == other.Get<int32_t>();
+    if (type_id_ == TypeId::BOOLEAN) return Get<int8_t>() == other.Get<int8_t>();
+    return false;
+}
+
+bool Value::CompareNotEqual(const Value& other) const {
+    return !CompareEquals(other);
+}
+
+bool Value::CompareLessThan(const Value& other) const {
+    if (type_id_ != other.type_id_) return false;
+    if (type_id_ == TypeId::INTEGER) return Get<int32_t>() < other.Get<int32_t>();
+    if (type_id_ == TypeId::BOOLEAN) return Get<int8_t>() < other.Get<int8_t>();
+    return false;
+}
+
+bool Value::CompareGreaterThan(const Value& other) const {
+    if (type_id_ != other.type_id_) return false;
+    if (type_id_ == TypeId::INTEGER) return Get<int32_t>() > other.Get<int32_t>();
+    if (type_id_ == TypeId::BOOLEAN) return Get<int8_t>() > other.Get<int8_t>();
+    return false;
+}
+
+bool Value::CompareLessThanOrEqual(const Value& other) const {
+    if (type_id_ != other.type_id_) return false;
+    if (type_id_ == TypeId::INTEGER) return Get<int32_t>() <= other.Get<int32_t>();
+    if (type_id_ == TypeId::BOOLEAN) return Get<int8_t>() <= other.Get<int8_t>();
+    return false;
+}
+
+bool Value::CompareGreaterThanOrEqual(const Value& other) const {
+    if (type_id_ != other.type_id_) return false;
+    if (type_id_ == TypeId::INTEGER) return Get<int32_t>() >= other.Get<int32_t>();
+    if (type_id_ == TypeId::BOOLEAN) return Get<int8_t>() >= other.Get<int8_t>();
+    return false;
+}

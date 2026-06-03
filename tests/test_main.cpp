@@ -12,5 +12,6 @@ int main() {
     tests.TestCatalogClass();
     tests.TestTableIteratorClass();
     tests.TestQueryEngineClass();
+    tests.TestJoin();
     return 0;
 }

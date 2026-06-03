@@ -23,3 +23,17 @@ uint32_t Schema::GetLength() const { return length_; }
 uint32_t Schema::GetColumnCount() const { 
     return static_cast<uint32_t>(columns_.size()); 
 }
+
+Schema Schema::Merge(
+    const Schema& left,  const std::string& left_table,
+    const Schema& right, const std::string& right_table
+) {
+    std::vector<Column> merged_cols;
+    for (const auto& col : left.GetColumns()) {
+        merged_cols.emplace_back(left_table + "." + col.GetName(), col.GetType());
+    }
+    for (const auto& col : right.GetColumns()) {
+        merged_cols.emplace_back(right_table + "." + col.GetName(), col.GetType());
+    }
+    return Schema(merged_cols);
+}

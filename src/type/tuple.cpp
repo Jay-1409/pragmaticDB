@@ -28,3 +28,11 @@ uint32_t Tuple::GetLength() const {
 Tuple::Tuple(const char* raw_data, uint32_t size) {
     data_.assign(raw_data, raw_data + size);
 }
+
+Tuple Tuple::Merge(const Tuple& left, const Tuple& right) {
+    Tuple merged;
+    merged.data_.reserve(left.GetLength() + right.GetLength());
+    merged.data_.insert(merged.data_.end(), left.data_.begin(), left.data_.end());
+    merged.data_.insert(merged.data_.end(), right.data_.begin(), right.data_.end());
+    return merged;
+}

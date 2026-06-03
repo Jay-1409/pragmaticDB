@@ -19,6 +19,11 @@ public:
     uint32_t GetLength() const;
     uint32_t GetColumnCount() const;
 
+    static Schema Merge(
+        const Schema& left,  const std::string& left_table,
+        const Schema& right, const std::string& right_table
+    );
+
 private:
     uint32_t length_;
     std::vector<Column> columns_;
