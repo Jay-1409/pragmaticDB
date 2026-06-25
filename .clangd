@@ -1,0 +1,6 @@
+CompileFlags:
+  Compiler: /usr/bin/clang++
+  Add:
+    - -xc++
+    - "-I/Users/jay/Desktop/open source/pragmaticDB/include"
+    - -std=c++20
