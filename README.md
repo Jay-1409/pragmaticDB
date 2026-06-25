@@ -5,10 +5,7 @@
 OPEN TO CONTIRBUTIONS
 --
 ## pragmaticDB
-An single binary sql engine for C++ applications that need structured, queryable storage.
-
-## What is it?
-PragmaticDB runs as a TCP server and speaks SQL. Point any client at it, send statements, get results back. No Postgres installation, no SQLite wrapper, no third-party runtime sitting between your application and its data. 
+An single binary sql engine for C++ applications that need structured, queryable storage. PragmaticDB runs as a TCP server and speaks SQL. Point any client at it, send statements, get results back. No Postgres installation, no SQLite wrapper, no third-party runtime sitting between your application and its data. 
 
 ## Features
 - **SQL over TCP** 
