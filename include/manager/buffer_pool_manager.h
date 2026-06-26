@@ -11,7 +11,7 @@ class BufferPoolManager {
         BufferPoolManager(std::size_t pool_size, DiskManager* disk_manager);
         Page* FetchPage(page_id_t page_id);
         Page* NewPage(page_id_t* page_id);
-        bool UnpinPage(page_id_t page_id, bool is_dirty);
+        bool UnpinPage(page_id_t page_id, bool is_dirty); /** the unpin -- the pin cnt in page, because the idea is to in future allow concurrent reads */
         bool FlushPage(page_id_t page_id);
         void FlushAllPages();
         bool DeletePage(page_id_t page_id);
@@ -31,7 +31,14 @@ class BufferPoolManager {
         std::deque<frame_id_t> free_list_;
         /** we already have a linked list version of lru whcih is good */
         std::list<frame_id_t> lru_list_;
-        std::unordered_map<frame_id_t, std::list<frame_id_t>::iterator> lru_pos_;
+        std::unordered_map<frame_id_t, std::list<frame_id_t>::iterator> lru_pos_; /** for O(1) updations and deletions it points where the node is actually present in the list throught the iteator */
         page_id_t next_page_id_;
 };
+
+/**
+ * 
+ * TODO: Do an custom implementation of the doubly linked list. 
+ * 
+ * 
+ */
 
