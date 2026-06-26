@@ -9,7 +9,7 @@
  *
  * Takes ownership of a Statement* from the Parser and dispatches to the
  * correct handler, calling Catalog::CreateTable, TableManager::InsertTuple,
- * or scanning via TableIterator for SELECT.
+ * or scanning via TableIterator for SELECT.x
  */
 class Executor {
 public:
