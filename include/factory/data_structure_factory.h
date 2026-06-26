@@ -18,3 +18,8 @@ class DsFactory {
 // 
 // will be called by the value class */
 
+// TODO:
+// This should be the base class, for all factorys, or probably this should be the class that is called for all facrtorys
+// Maybe inheritence can be added
+// 
+// 
