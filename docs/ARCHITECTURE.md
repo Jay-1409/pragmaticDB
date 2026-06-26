@@ -1,4 +1,14 @@
-# pragmaticDB — Architecture
+
+# Architecture
+---
+# Class Diagram
+![pragmaticDB architecture](docs/assets/class_diagram_rendered.svg)
+
+
+
+
+
+<!--# pragmaticDB — Architecture
 
 A complete systems diagram of the database engine from raw disk bytes up to the TCP network layer.
 
@@ -401,4 +411,4 @@ Executor::ExecuteSelect()
   → QueryResult { rows=[["42","true"]] }
 
 TcpServer → formats → sends to client
-```
+```-->

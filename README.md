@@ -55,11 +55,9 @@ nc localhost 8080
 - What are the limitations of this engine as of now? [Limitations](docs/limitations.md)
 - **Sql reference sheet** [SQL reference](docs/sql-reference.md)
 - How can i benchmark the database engine? [Benchmarking guide](docs/benchmarking.md)
-- Whiteboard illustrations (excalidraw) [whiteboard](docs/whiteboard.excalidraw)
-
+- Architecture
+  - Whiteboard illustrations (excalidraw) [whiteboard](docs/whiteboard.excalidraw)
+  - Class Diagram (rendered) [SVG](docs/architecture.md)
+  
 ## License
 MIT. See [LICENSE](LICENSE).
-
-## Architecture Diagram
-
-![pragmaticDB architecture](docs/assets/class_diagram_rendered.svg)
