@@ -60,4 +60,6 @@ nc localhost 8080
 ## License
 MIT. See [LICENSE](LICENSE).
 
-![pragmaticDB architecture](docs/static/arch.svg)
+## Architecture Diagram
+
+![pragmaticDB architecture](docs/assets/class_diagram_rendered.svg)
