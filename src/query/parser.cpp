@@ -101,6 +101,32 @@ std::unique_ptr<Statement> Parser::ParseSelect(std::istringstream& ss) {
         stmt->table_name.pop_back();
     }
 
+    // ── NEW: Check for optional JOIN clause ──
+    std::streampos pos = ss.tellg();
+    std::string next;
+    if (ss >> next) {
+        std::string next_upper = next;
+        for (auto& c : next_upper) c = toupper(c);
+        if (next_upper == "JOIN") {
+            ss >> stmt->join_table_name;
+            std::string on_kw;
+            if (ss >> on_kw) {
+                for (auto& c : on_kw) c = toupper(c);
+                if (on_kw == "ON") {
+                    stmt->join_condition = ParseExpression(ss);
+                } else {
+                    return nullptr; // JOIN requires ON clause
+                }
+            } else {
+                return nullptr; // JOIN requires ON clause
+            }
+        } else {
+            // Not a JOIN, restore stream (might be just a semicolon)
+            ss.clear();
+            ss.seekg(pos);
+        }
+    }
+
     return stmt;
 }
 
@@ -134,4 +160,115 @@ std::unique_ptr<Statement> Parser::ParseDelete(std::istringstream& ss) {
     }
 
     return stmt;
+}
+
+std::unique_ptr<Expression> Parser::ParseExpression(std::istringstream& ss) {
+    auto left = ParseAndExpression(ss);
+    
+    while (true) {
+        std::streampos pos = ss.tellg();
+        std::string next;
+        if (!(ss >> next)) break;
+        std::string next_upper = next;
+        for (auto& c : next_upper) c = toupper(c);
+        
+        if (next_upper == "OR") {
+            auto right = ParseAndExpression(ss);
+            left = std::make_unique<LogicalExpression>(LogicType::OR, std::move(left), std::move(right));
+        } else {
+            ss.clear();
+            ss.seekg(pos);
+            break;
+        }
+    }
+    return left;
+}
+
+std::unique_ptr<Expression> Parser::ParseAndExpression(std::istringstream& ss) {
+    auto left = ParseComparison(ss);
+    
+    while (true) {
+        std::streampos pos = ss.tellg();
+        std::string next;
+        if (!(ss >> next)) break;
+        std::string next_upper = next;
+        for (auto& c : next_upper) c = toupper(c);
+        
+        if (next_upper == "AND") {
+            auto right = ParseComparison(ss);
+            left = std::make_unique<LogicalExpression>(LogicType::AND, std::move(left), std::move(right));
+        } else {
+            ss.clear();
+            ss.seekg(pos);
+            break;
+        }
+    }
+    return left;
+}
+
+std::unique_ptr<Expression> Parser::ParseComparison(std::istringstream& ss) {
+    auto left = ParseAtom(ss);
+    
+    std::streampos pos = ss.tellg();
+    std::string op;
+    if (ss >> op) {
+        ComparisonType comp_type;
+        bool is_comp = true;
+        if (op == "=") comp_type = ComparisonType::EQ;
+        else if (op == "!=") comp_type = ComparisonType::NEQ;
+        else if (op == "<") comp_type = ComparisonType::LT;
+        else if (op == ">") comp_type = ComparisonType::GT;
+        else if (op == "<=") comp_type = ComparisonType::LTE;
+        else if (op == ">=") comp_type = ComparisonType::GTE;
+        else is_comp = false;
+        
+        if (is_comp) {
+            auto right = ParseAtom(ss);
+            return std::make_unique<ComparisonExpression>(comp_type, std::move(left), std::move(right));
+        } else {
+            ss.clear();
+            ss.seekg(pos);
+        }
+    }
+    return left;
+}
+
+std::unique_ptr<Expression> Parser::ParseAtom(std::istringstream& ss) {
+    std::string token;
+    
+    if (!(ss >> token)) return nullptr;
+    
+    if (token == "(") {
+        auto expr = ParseExpression(ss);
+        std::string close;
+        if (!(ss >> close) || close != ")") return nullptr; // missing closing paren
+        return expr;
+    }
+    
+    // Strip trailing ';' or ')' if attached
+    while (!token.empty() && (token.back() == ';' || token.back() == ')')) {
+        token.pop_back();
+    }
+    
+    // Strip leading '(' if attached
+    if (!token.empty() && token.front() == '(') {
+        token.erase(0, 1);
+    }
+    
+    size_t dot_pos = token.find('.');
+    if (dot_pos != std::string::npos) {
+        return std::make_unique<ColumnRefExpression>(token.substr(0, dot_pos), token.substr(dot_pos + 1));
+    }
+    
+    std::string token_upper = token;
+    for (auto& c : token_upper) c = toupper(c);
+    if (token_upper == "TRUE") {
+        return std::make_unique<ConstantExpression>("true");
+    } else if (token_upper == "FALSE") {
+        return std::make_unique<ConstantExpression>("false");
+    } else if ((token[0] >= '0' && token[0] <= '9') || (token[0] == '-' && token.size() > 1)) {
+        return std::make_unique<ConstantExpression>(token);
+    }
+    
+    return std::make_unique<ColumnRefExpression>("", token);
 }

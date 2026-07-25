@@ -4,6 +4,8 @@
 #include "../ds/statement.h"
 #include "../ds/query_result.h"
 #include "catalog/schema.h"
+#include "query/optimizer.h"
+#include "query/index_provider.h"
 /**
  * @brief Executes a parsed Statement against the database Catalog.
  *
@@ -13,7 +15,8 @@
  */
 class Executor {
 public:
-    explicit Executor(Catalog& catalog) : catalog_(catalog) {}
+    explicit Executor(Catalog& catalog, const IndexProvider& idx = kDefaultIndexProvider)
+        : catalog_(catalog), index_provider_(idx) {}
 
     /**
      * @brief Execute the given statement and return a QueryResult.
@@ -28,5 +31,14 @@ private:
     QueryResult ExecuteCommit();
     QueryResult ExecuteDelete(const DeleteStatement& stmt);
 
+    QueryResult ExecuteJoin(const SelectStatement& stmt);
+    std::vector<std::pair<RecordId, RecordId>> ExecuteBranch(
+        const BranchPlan& branch,
+        TableInfo* left_tbl, TableInfo* right_tbl,
+        const Schema& left_schema, const Schema& right_schema,
+        const Schema& merged_schema
+    );
+
     Catalog& catalog_;
+    const IndexProvider& index_provider_;
 };

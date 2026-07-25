@@ -2,7 +2,9 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include "catalog/column.h"
+#include "query/expression.h"
 
 // ── Statement type tag ────────────────────────────────────────────────────────
 enum class StatementType {
@@ -39,6 +41,9 @@ struct InsertStatement : public Statement {
 // ── SELECT * FROM users; ──────────────────────────────────────────────────────
 struct SelectStatement : public Statement {
     std::string table_name;
+
+    std::string join_table_name;
+    std::unique_ptr<Expression> join_condition;
 
     SelectStatement() : Statement(StatementType::SELECT) {}
 };

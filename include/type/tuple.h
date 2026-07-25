@@ -31,6 +31,8 @@ public:
     const char* GetData() const;
     uint32_t GetLength() const;
 
+    static Tuple Merge(const Tuple& left, const Tuple& right);
+
 private:
     std::vector<char> data_;
 };
